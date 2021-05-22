@@ -1,6 +1,8 @@
 # vocab
 
-Vocab on flutter
+Migrating to Flutter from Android.
+THIS PROJECT IS JUST FOR LEARNING FLUTTER.
+
 
 ## Getting Started
 
