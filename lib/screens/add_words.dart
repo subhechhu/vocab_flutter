@@ -7,12 +7,18 @@ import 'package:progress_dialog/progress_dialog.dart';
 import 'package:http/http.dart';
 import 'package:vocab/services/meaning_response.dart';
 
+import 'package:vocab/services/db_helper.dart';
+import 'package:vocab/services/words.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+
 class AddWord extends StatefulWidget {
   @override
   _AddWordState createState() => _AddWordState();
 }
 
 class _AddWordState extends State<AddWord> {
+  DbHelper dbHelper = DbHelper();
+
   int _maxLinesMeaning = 5;
   int _maxLinesSentence = 10;
   bool _validateWord = false;
@@ -39,13 +45,19 @@ class _AddWordState extends State<AddWord> {
   }
 
   @override
+  void initState() {
+    super.initState();
+    dbHelper.getDbInstance();
+  }
+
+  @override
   Widget build(BuildContext context) {
     pr = ProgressDialog(context,
         type: ProgressDialogType.Normal, isDismissible: false, showLogs: true);
 
     Map data = ModalRoute.of(context).settings.arguments;
-    // action = data['action'];
-    action = 'Add Word';
+    action = data['action'];
+
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
@@ -267,28 +279,63 @@ class _AddWordState extends State<AddWord> {
                 'Fetching details for ${_controllerWord.value.text.trim()}');
         pr.show();
         getDetailsForWord();
+      } else {
+        // if all details is fetched, next add details to DB & Firebase
+        setState(() {
+          _controllerWord.text.isEmpty
+              ? _validateWord = true
+              : _validateWord = false;
+          _controllerPronunciation.text.isEmpty
+              ? _validatPronunciation = true
+              : _validatPronunciation = false;
+          _controllerMeaning.text.isEmpty
+              ? _validateMeaning = true
+              : _validateMeaning = false;
+        });
+        if (_controllerWord.text.isEmpty ||
+            _controllerPronunciation.text.isEmpty ||
+            _controllerMeaning.text.isEmpty) return;
+
+        Words words = Words(
+            word: _controllerWord.value.text.trim().toLowerCase(),
+            meaning: _controllerMeaning.value.text.trim().toLowerCase(),
+            pronunciation:
+                _controllerPronunciation.value.text.trim().toLowerCase(),
+            sentence: _controllerSentence.value.text.trim().toLowerCase());
+
+        print(words.toString());
+
+        dbHelper.insertWord(words).then((int insert) {
+          if (insert != 0) {
+            Fluttertoast.showToast(
+                msg:
+                    "${_controllerWord.value.text.trim().toLowerCase()} added to Database",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.CENTER,
+                backgroundColor: googleButtonBg,
+                textColor: googleButtonTextLight,
+                fontSize: 16.0);
+
+            _controllerWord.text = '';
+            clearFields();
+
+            setState(() {
+              _hasFetchedMeaning = false;
+            });
+          } else {
+            Fluttertoast.showToast(
+                msg: "Failed. Something went wrong",
+                toastLength: Toast.LENGTH_SHORT,
+                gravity: ToastGravity.CENTER,
+                backgroundColor: error,
+                textColor: googleButtonTextLight,
+                fontSize: 16.0);
+          }
+        });
       }
     } else {
-      setState(() {
-        _controllerWord.text.isEmpty
-            ? _validateWord = true
-            : _validateWord = false;
-        _controllerPronunciation.text.isEmpty
-            ? _validatPronunciation = true
-            : _validatPronunciation = false;
-        _controllerMeaning.text.isEmpty
-            ? _validateMeaning = true
-            : _validateMeaning = false;
-      });
-      if (_controllerWord.text.isEmpty ||
-          _controllerPronunciation.text.isEmpty ||
-          _controllerMeaning.text.isEmpty) return;
+      // if coming from the list, modify the details.
     }
-
-    print(_controllerWord.value.text.trim().toLowerCase());
-    print(_controllerPronunciation.value.text.trim().toLowerCase());
-    print(_controllerMeaning.value.text.trim().toLowerCase());
-    print(_controllerSentence.value.text.trim().toLowerCase());
   }
 
   IconData getAddIcon() {

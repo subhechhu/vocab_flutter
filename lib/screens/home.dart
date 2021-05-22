@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:vocab/services/authenticaation.dart';
 import 'package:vocab/util/colors.dart';
 
+import 'package:vocab/services/db_helper.dart';
+import 'package:vocab/services/words.dart';
+
 class Home extends StatefulWidget {
   @override
   _HomeState createState() => _HomeState();
@@ -14,9 +17,12 @@ class _HomeState extends State<Home> {
   bool _freshLogin =
       false; // is true read data from firebase and store locally or do nothing
 
+  DbHelper dbHelper = DbHelper();
+
   @override
   void initState() {
     super.initState();
+    dbHelper.getDbInstance();
   }
 
   @override
@@ -28,7 +34,8 @@ class _HomeState extends State<Home> {
       backgroundColor: primaryColor,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          Navigator.pushNamed(context, '/add');
+          Navigator.pushNamed(context, '/add',
+              arguments: {'action': 'Add Word'});
         },
         backgroundColor: googleButtonBg,
         splashColor: googleButtonBg,
@@ -57,16 +64,18 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                  child: SizedBox(
-                    height: 150,
-                    child: Card(
-                      elevation: 0,
-                      color: googleButtonBg,
-                      child: InkWell(
-                          splashColor: googleButtonBg,
-                          onTap: () {
-                            print('Card tapped.');
-                          },
+                  child: Card(
+                    elevation: 0,
+                    color: googleButtonBg,
+                    child: InkWell(
+                        splashColor: googleButtonBg,
+                        onTap: () {
+                          dbHelper.getRandomData().then((value) {
+                            print(value.toString());
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -86,24 +95,26 @@ class _HomeState extends State<Home> {
                                     fontSize: 18),
                               ),
                             ],
-                          )),
-                    ),
+                          ),
+                        )),
                   ),
                 ),
                 SizedBox(
                   width: 2,
                 ),
                 Expanded(
-                  child: SizedBox(
-                    height: 150,
-                    child: Card(
-                      elevation: 0,
-                      color: googleButtonBg,
-                      child: InkWell(
-                          splashColor: googleButtonBg,
-                          onTap: () {
-                            print('Card tapped.');
-                          },
+                  child: Card(
+                    elevation: 0,
+                    color: googleButtonBg,
+                    child: InkWell(
+                        splashColor: googleButtonBg,
+                        onTap: () {
+                          dbHelper.getRandomData().then((value) {
+                            print(value.toString());
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -123,8 +134,8 @@ class _HomeState extends State<Home> {
                                     fontSize: 18),
                               ),
                             ],
-                          )),
-                    ),
+                          ),
+                        )),
                   ),
                 )
               ],
@@ -136,16 +147,18 @@ class _HomeState extends State<Home> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
                 Expanded(
-                  child: SizedBox(
-                    height: 150,
-                    child: Card(
-                      elevation: 0,
-                      color: googleButtonBg,
-                      child: InkWell(
-                          splashColor: googleButtonBg,
-                          onTap: () {
-                            print('Card tapped.');
-                          },
+                  child: Card(
+                    elevation: 0,
+                    color: googleButtonBg,
+                    child: InkWell(
+                        splashColor: googleButtonBg,
+                        onTap: () {
+                          dbHelper.getRecentWords(1).then((value) {
+                            print(value.toString());
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -165,24 +178,26 @@ class _HomeState extends State<Home> {
                                     fontSize: 18),
                               ),
                             ],
-                          )),
-                    ),
+                          ),
+                        )),
                   ),
                 ),
                 SizedBox(
                   width: 2,
                 ),
                 Expanded(
-                  child: SizedBox(
-                    height: 150,
-                    child: Card(
-                      elevation: 0,
-                      color: googleButtonBg,
-                      child: InkWell(
-                          splashColor: googleButtonBg,
-                          onTap: () {
-                            print('Card tapped.');
-                          },
+                  child: Card(
+                    elevation: 0,
+                    color: googleButtonBg,
+                    child: InkWell(
+                        splashColor: googleButtonBg,
+                        onTap: () {
+                          dbHelper.getAllWords().then((value) {
+                            print(value.toString());
+                          });
+                        },
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
                           child: Column(
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
@@ -202,8 +217,8 @@ class _HomeState extends State<Home> {
                                     fontSize: 18),
                               ),
                             ],
-                          )),
-                    ),
+                          ),
+                        )),
                   ),
                 ),
               ],

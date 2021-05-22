@@ -4,3 +4,4 @@ Color primaryColor = Colors.black54;
 Color googleButtonBg = Colors.white10;
 Color googleButtonTextLight = Colors.white38;
 Color googleButtonText = Colors.white60;
+Color error = Colors.red[800];
