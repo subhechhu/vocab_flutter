@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "263325739232",
+    "project_id": "vocab-flutter",
+    "storage_bucket": "vocab-flutter.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:263325739232:android:1bc436635b189d15db0885",
+        "android_client_info": {
+          "package_name": "com.subhechhu.flutter.vocab"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "263325739232-9ndfkl7n159iaajo6he6b8a2kard4jt5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.subhechhu.flutter.vocab",
+            "certificate_hash": "3ffadba4dc7254a97a188bfdb951fc241d2c96d7"
+          }
+        },
+        {
+          "client_id": "263325739232-9hpjdts7budftkbosu6dcb5rl7m82278.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDXwWbr__2SoKHa0rf5-lJmkvxbtfWa00c"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "263325739232-9hpjdts7budftkbosu6dcb5rl7m82278.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
