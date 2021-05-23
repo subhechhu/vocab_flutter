@@ -301,6 +301,8 @@ class _AddWordState extends State<AddWord> {
             _controllerMeaning.text.isEmpty) return;
 
         Words words = Words(
+            correct: 0,
+            incorrect: 0,
             word: _controllerWord.value.text.trim().toLowerCase(),
             meaning: _controllerMeaning.value.text.trim().toLowerCase(),
             pronunciation:

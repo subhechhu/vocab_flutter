@@ -33,7 +33,8 @@ class DbHelper {
 
   Future<List<Words>> getAllWords() async {
     final db = await _database;
-    final List<Map<String, dynamic>> maps = await db.query('words');
+    final List<Map<String, dynamic>> maps =
+        await db.query('words', orderBy: 'word');
     return List.generate(maps.length, (i) {
       return Words(
         id: maps[i]['id'],

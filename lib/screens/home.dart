@@ -12,7 +12,6 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   Authentication authentication = Authentication();
-  int _totalWords = 0;
   String _email = '';
   String _userId = '';
 
@@ -52,17 +51,6 @@ class _HomeState extends State<Home> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Align(
-              alignment: Alignment.center,
-              child: Text(
-                _email,
-                style: TextStyle(
-                    color: googleButtonBg, letterSpacing: 1.5, fontSize: 15),
-              ),
-            ),
-            SizedBox(
-              height: 25,
-            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -156,9 +144,10 @@ class _HomeState extends State<Home> {
                     child: InkWell(
                         splashColor: googleButtonBg,
                         onTap: () {
-                          dbHelper.getRecentWords(1).then((value) {
-                            print(value.toString());
-                          });
+                          Navigator.pushNamed(
+                            context,
+                            '/view_recent',
+                          );
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -195,9 +184,10 @@ class _HomeState extends State<Home> {
                     child: InkWell(
                         splashColor: googleButtonBg,
                         onTap: () {
-                          dbHelper.getAllWords().then((value) {
-                            print(value.toString());
-                          });
+                          Navigator.pushNamed(
+                            context,
+                            '/view_all',
+                          );
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -226,13 +216,15 @@ class _HomeState extends State<Home> {
                 ),
               ],
             ),
-            SizedBox(height: 25),
+            SizedBox(
+              height: 25,
+            ),
             Align(
               alignment: Alignment.center,
               child: Text(
-                'Total Words: $_totalWords',
+                _email,
                 style: TextStyle(
-                    color: googleButtonText, letterSpacing: 1.5, fontSize: 15),
+                    color: googleButtonBg, letterSpacing: 1.5, fontSize: 15),
               ),
             ),
           ],
