@@ -5,10 +5,15 @@ import 'package:shared_preferences/shared_preferences.dart';
 class Authentication {
   final GoogleSignIn _googleSignIn = GoogleSignIn();
   final FirebaseAuth _firebaseAuth = FirebaseAuth.instance;
-  String _email = "";
+  String _email = '';
+  String _userId = '';
 
   String getEmail() {
     return _email;
+  }
+
+  String getUserId() {
+    return _userId;
   }
 
   GoogleSignIn getUser() {
@@ -29,11 +34,13 @@ class Authentication {
     final User user = userCredential.user;
 
     _email = user.email;
+    _userId = user.uid;
 
     _prefs.then((SharedPreferences pref) {
       pref.setString("email", user.email);
       pref.setString("displayName", user.displayName);
       pref.setBool("isLoggedIn", true);
+      pref.setString("userId", user.uid);
     });
 
     if (user.email == null) return false;

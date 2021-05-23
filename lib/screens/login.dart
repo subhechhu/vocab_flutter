@@ -103,23 +103,28 @@ class _LoginState extends State<Login> {
     bool isUserLogged = await authentication.googleSignIn(_prefs);
     if (isUserLogged) {
       pr.hide();
-      Navigator.pushReplacementNamed(context, '/home',
-          arguments: {'email': authentication.getEmail(), 'freshLogin': true});
+      Navigator.pushReplacementNamed(context, '/home', arguments: {
+        'email': authentication.getEmail(),
+        'freshLogin': true,
+        'userId': authentication.getUserId()
+      });
     }
   }
 
   void checkIfAlreadyLoggedIn() {
     _prefs.then((SharedPreferences prefs) {
       bool loggedIn = prefs.getBool('isLoggedIn') ?? false;
-      String displayName = prefs.getString("displayName" ?? "");
-      String email = prefs.getString("email" ?? "");
+      String displayName = prefs.getString('displayName' ?? '');
+      String email = prefs.getString('email' ?? '');
+      String userId = prefs.getString('userId' ?? '');
       print("isLoggedIn? $loggedIn");
       print("email? $email");
       print("displayName? $displayName");
+      print("userId? $userId");
 
       if (loggedIn) {
         Navigator.pushReplacementNamed(context, '/home',
-            arguments: {'email': email, 'freshLogin': false});
+            arguments: {'email': email, 'freshLogin': false, 'userId': userId});
       } else {
         setState(() {
           showProgressBar = false;

@@ -13,7 +13,9 @@ class Home extends StatefulWidget {
 class _HomeState extends State<Home> {
   Authentication authentication = Authentication();
   int _totalWords = 0;
-  String _email = "";
+  String _email = '';
+  String _userId = '';
+
   bool _freshLogin =
       false; // is true read data from firebase and store locally or do nothing
 
@@ -30,12 +32,13 @@ class _HomeState extends State<Home> {
     Map data = ModalRoute.of(context).settings.arguments;
     _email = data['email'];
     _freshLogin = data['freshLogin'];
+    _userId = data['userId'];
     return Scaffold(
       backgroundColor: primaryColor,
       floatingActionButton: FloatingActionButton(
         onPressed: () {
           Navigator.pushNamed(context, '/add',
-              arguments: {'action': 'Add Word'});
+              arguments: {'action': 'Add Word', 'userId': _userId});
         },
         backgroundColor: googleButtonBg,
         splashColor: googleButtonBg,

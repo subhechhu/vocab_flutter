@@ -10,6 +10,7 @@ import 'package:vocab/services/meaning_response.dart';
 import 'package:vocab/services/db_helper.dart';
 import 'package:vocab/services/words.dart';
 import 'package:fluttertoast/fluttertoast.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class AddWord extends StatefulWidget {
   @override
@@ -18,6 +19,7 @@ class AddWord extends StatefulWidget {
 
 class _AddWordState extends State<AddWord> {
   DbHelper dbHelper = DbHelper();
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
 
   int _maxLinesMeaning = 5;
   int _maxLinesSentence = 10;
@@ -34,6 +36,7 @@ class _AddWordState extends State<AddWord> {
   ProgressDialog pr;
 
   String action;
+  String _userId;
 
   @override
   void dispose() {
@@ -57,6 +60,7 @@ class _AddWordState extends State<AddWord> {
 
     Map data = ModalRoute.of(context).settings.arguments;
     action = data['action'];
+    _userId = data['userId'];
 
     return Scaffold(
       backgroundColor: primaryColor,
@@ -307,6 +311,9 @@ class _AddWordState extends State<AddWord> {
 
         dbHelper.insertWord(words).then((int insert) {
           if (insert != 0) {
+            words.id = insert;
+            pushToFirebase(words);
+
             Fluttertoast.showToast(
                 msg:
                     "${_controllerWord.value.text.trim().toLowerCase()} added to Database",
@@ -404,5 +411,17 @@ class _AddWordState extends State<AddWord> {
     _controllerMeaning.text = '';
     _controllerSentence.text = '';
     _controllerPronunciation.text = '';
+  }
+
+  void pushToFirebase(Words words) {
+    firestore.collection(_userId).doc(words.word).set({
+      'word': words.word,
+      'id': words.id,
+      'correct': words.correct,
+      'incorrect': words.incorrect,
+      'pronunciation': words.pronunciation,
+      'meaning': words.meaning,
+      'sentence': words.sentence
+    });
   }
 }
