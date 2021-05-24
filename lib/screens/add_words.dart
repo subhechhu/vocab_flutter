@@ -62,6 +62,16 @@ class _AddWordState extends State<AddWord> {
     action = data['action'];
     _userId = data['userId'];
 
+    if (action == 'Modify Word') {
+      Words words = data['word'];
+
+      print('-------------------- word: ${words.toString()}');
+      _controllerWord.text = words.word;
+      _controllerMeaning.text = words.meaning;
+      _controllerPronunciation.text = words.pronunciation;
+      _controllerSentence.text = words.sentence;
+    }
+
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
@@ -83,8 +93,14 @@ class _AddWordState extends State<AddWord> {
             child: Column(
               children: [
                 TextFormField(
+                  readOnly: action == 'Modify Word' ? true : false,
+                  showCursor: action == 'Modify Word' ? false : true,
                   controller: _controllerWord,
-                  style: TextStyle(color: googleButtonText, letterSpacing: 1),
+                  style: TextStyle(
+                      color: action == 'Modify Word'
+                          ? googleButtonTextLight
+                          : googleButtonText,
+                      letterSpacing: 1),
                   cursorColor: googleButtonTextLight,
                   decoration: InputDecoration(
                       enabledBorder: OutlineInputBorder(

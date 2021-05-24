@@ -3,7 +3,6 @@ import 'package:vocab/services/authenticaation.dart';
 import 'package:vocab/util/colors.dart';
 
 import 'package:vocab/services/db_helper.dart';
-import 'package:vocab/services/words.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -61,9 +60,7 @@ class _HomeState extends State<Home> {
                     child: InkWell(
                         splashColor: googleButtonBg,
                         onTap: () {
-                          dbHelper.getRandomData().then((value) {
-                            print(value.toString());
-                          });
+                          Navigator.pushNamed(context, '/random_word');
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -224,7 +221,9 @@ class _HomeState extends State<Home> {
               child: Text(
                 _email,
                 style: TextStyle(
-                    color: googleButtonBg, letterSpacing: 1.5, fontSize: 15),
+                    color: googleButtonTextLight,
+                    letterSpacing: 1.5,
+                    fontSize: 15),
               ),
             ),
           ],

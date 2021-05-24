@@ -1,17 +1,20 @@
-import 'package:flutter/material.dart';
-
 class Words {
   int id;
-  int correct;
-  int incorrect;
-  String word;
+  int correct = 0;
+  int incorrect = 0;
+  String word = '';
   String pronunciation;
   String meaning;
   String sentence;
 
-
-  Words({this.id, this.correct, this.incorrect, this.word,
-      this.pronunciation, this.meaning, this.sentence});
+  Words(
+      {this.id,
+      this.correct,
+      this.incorrect,
+      this.word,
+      this.pronunciation,
+      this.meaning,
+      this.sentence});
 
   Map<String, dynamic> toMap() {
     return {

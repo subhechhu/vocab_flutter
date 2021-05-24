@@ -4,8 +4,8 @@ import 'package:vocab/screens/add_words.dart';
 import 'package:vocab/screens/all_words.dart';
 import 'package:vocab/screens/home.dart';
 import 'package:vocab/screens/login.dart';
+import 'package:vocab/screens/random_word.dart';
 import 'package:vocab/screens/recent_words.dart';
-import 'package:vocab/screens/splash.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,11 +14,11 @@ void main() async {
       debugShowCheckedModeBanner: false,
       initialRoute: '/login',
       routes: {
-        '/': (context) => Splash(),
         '/login': (context) => Login(),
         '/home': (context) => Home(),
         '/add': (context) => AddWord(),
         '/view_all': (context) => AllWords(),
-        '/view_recent': (context) => RecentWords()
+        '/view_recent': (context) => RecentWords(),
+        '/random_word': (context) => RandomWord()
       }));
 }

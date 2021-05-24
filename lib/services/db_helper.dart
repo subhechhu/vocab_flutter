@@ -5,18 +5,19 @@ import 'package:vocab/services/words.dart';
 class DbHelper {
   Future<Database> _database;
 
-  getDbInstance() async {
+  Future<Database> getDbInstance() async {
     if (_database == null) {
       _database = openDatabase(
         join(await getDatabasesPath(), 'vocab_database.db'),
         onCreate: (db, version) {
           return db.execute(
-            'CREATE TABLE words (id INTEGER PRIMARY KEY AUTOINCREMENT, correct INTEGER, incorrect INTEGER UNIQUE, word TEXT, pronunciation TEXT, meaning TEXT, sentence TEXT)',
+            'CREATE TABLE words (id INTEGER PRIMARY KEY AUTOINCREMENT, correct INTEGER DEFAULT 0, incorrect INTEGER DEFAULT 0, word TEXT UNIQUE, pronunciation TEXT, meaning TEXT, sentence TEXT)',
           );
         },
         version: 1,
       );
     }
+    return _database;
   }
 
   Future<int> insertWord(Words words) async {
