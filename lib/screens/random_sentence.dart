@@ -7,41 +7,49 @@ import 'package:fluttertoast/fluttertoast.dart';
 import 'package:vocab/util/messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
-class RandomWord extends StatefulWidget {
+class RandomSentence extends StatefulWidget {
   @override
-  _RandomWordState createState() => _RandomWordState();
+  _RandomSentenceState createState() => _RandomSentenceState();
 }
 
-class _RandomWordState extends State<RandomWord> {
-  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+class _RandomSentenceState extends State<RandomSentence> {
   DbHelper dbHelper = DbHelper();
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+
   ProgressDialog pr;
   String _word = '';
   String _meaning = '';
   int _correct = 0;
   int _incorrect = 0;
-  bool showMeaning = false;
+  bool isTextEmpty = true;
+  bool _validateText = false;
+  FocusNode _focusNode;
   String userName = '';
   Words wordObject;
+
+  final _controllerWord = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    dbHelper.getDbInstance().then((value) => fetchDetails());
+    dbHelper.getDbInstance().then((value) => {fetchDetails()});
     _prefs.then((SharedPreferences prefs) {
       var str = prefs.getString('displayName' ?? '');
       var parts = str.split(':');
       userName = parts[0].trim();
     });
+    _focusNode = FocusNode();
+  }
+
+  @override
+  void dispose() {
+    super.dispose();
+    _controllerWord.dispose();
+    _focusNode.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
-    // pr = ProgressDialog(context,
-    //     type: ProgressDialogType.Normal, isDismissible: false, showLogs: true);
-    // pr.style(message: 'Loading Words...');
-    // pr.show();
-
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
@@ -51,7 +59,7 @@ class _RandomWordState extends State<RandomWord> {
         backgroundColor: primaryColor,
         elevation: 0,
         title: Text(
-          'Test By Words',
+          'Test By Meaning',
           style: TextStyle(color: googleButtonText, letterSpacing: 1.5),
         ),
         centerTitle: true,
@@ -66,32 +74,19 @@ class _RandomWordState extends State<RandomWord> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    '$_word',
-                    style: TextStyle(
-                        color: googleButtonText,
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold),
+                  Expanded(
+                    child: Text(
+                      '$_meaning',
+                      style: TextStyle(
+                          color: googleButtonText,
+                          fontSize: 25,
+                          fontWeight: FontWeight.bold),
+                    ),
                   ),
                 ],
               ),
               SizedBox(
-                height: 100,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      showMeaning ? '$_meaning' : '',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: googleButtonText,
-                        fontSize: 20,
-                      ),
-                    ),
-                  )
-                ],
+                height: 50,
               ),
               SizedBox(
                 height: 150,
@@ -106,12 +101,8 @@ class _RandomWordState extends State<RandomWord> {
                           FloatingActionButton(
                             heroTag: "thumbs_up",
                             onPressed: () {
-                              setState(() {
-                                showMeaning = false;
-                              });
-                              updateCount("correct");
-                              fetchDetails();
-                              showToastMessage(getShortCorrectMessage());
+                              showToastMessage(
+                                  'You have answered ${_word.toUpperCase()} correctly $_correct times.');
                             },
                             backgroundColor: googleButtonBg,
                             splashColor: googleButtonBg,
@@ -140,7 +131,8 @@ class _RandomWordState extends State<RandomWord> {
                           FloatingActionButton(
                             heroTag: "thumbs_down",
                             onPressed: () {
-                              fetchDetails();
+                              showToastMessage(
+                                  'You have answered ${_word.toUpperCase()} incorrectly $_incorrect times.');
                             },
                             backgroundColor: googleButtonBg,
                             splashColor: googleButtonBg,
@@ -168,32 +160,68 @@ class _RandomWordState extends State<RandomWord> {
               SizedBox(
                 height: 75,
               ),
-              FloatingActionButton(
-                onPressed: () {},
-                backgroundColor: googleButtonBg,
-                splashColor: googleButtonBg,
-                child: Icon(
-                  Icons.volume_up_rounded,
-                  color: googleButtonText,
-                ),
+              TextFormField(
+                focusNode: _focusNode,
+                onChanged: (text) {
+                  if (text.isEmpty)
+                    setState(() {
+                      isTextEmpty = true;
+                    });
+                  else
+                    setState(() {
+                      isTextEmpty = false;
+                    });
+                },
+                keyboardType: TextInputType.emailAddress,
+                controller: _controllerWord,
+                textInputAction: TextInputAction.go,
+                style: TextStyle(color: googleButtonText, letterSpacing: 1),
+                cursorColor: googleButtonTextLight,
+                decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: googleButtonTextLight, width: 1.0),
+                    ),
+                    focusedBorder: new OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: googleButtonText, width: 1.5),
+                    ),
+                    border: const OutlineInputBorder(),
+                    labelStyle: new TextStyle(
+                        color: googleButtonText, letterSpacing: 1.5),
+                    labelText: 'Word'),
               ),
               SizedBox(
                 height: 100,
               ),
-              TextButton(
-                  onPressed: () {
-                    showMeaning ? print('oh no') : processWithIncorrect();
-                    setState(() {
-                      showMeaning = !showMeaning;
-                    });
-                  },
-                  child: Text(
-                    showMeaning ? 'Hide Meaning' : 'Show Meaning',
-                    style: TextStyle(
-                        color: googleButtonText,
-                        letterSpacing: 1,
-                        fontSize: 16),
-                  ))
+              SizedBox(
+                height: 50,
+                child: Card(
+                  elevation: 0,
+                  color: _validateText ? googleButtonTextLight : googleButtonBg,
+                  child: InkWell(
+                      splashColor: googleButtonBg,
+                      onTap: () {
+                        FocusScope.of(context).unfocus();
+                        _validateText // is validate is already pressed
+                            ? print('validating')
+                            : processWithValidation();
+                      },
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Text(
+                            isTextEmpty ? 'Give up' : 'Validate',
+                            textAlign: TextAlign.center,
+                            style: TextStyle(
+                                color: googleButtonText,
+                                letterSpacing: 1.5,
+                                fontSize: 18),
+                          ),
+                        ],
+                      )),
+                ),
+              ),
             ],
           ),
         ),
@@ -201,10 +229,57 @@ class _RandomWordState extends State<RandomWord> {
     );
   }
 
+  validateInput() {
+    if (_word == _controllerWord.text) {
+      updateCount('correct');
+      showToastMessage(getCorrectMessage(userName));
+      _controllerWord.text = '';
+      fetchDetails();
+    } else {
+      updateCount('incorrect');
+      setState(() {
+        _incorrect = _incorrect + 1;
+      });
+      String wrongMessage = getWrongMessage(userName);
+      showSnackBar(
+          '$wrongMessage. ${_word.toUpperCase()} is correct word for the sentence');
+    }
+  }
+
+  showSnackBar(message) {
+    setState(() {
+      _validateText = true;
+    });
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        message,
+        style: TextStyle(letterSpacing: 1, color: googleButtonText),
+      ),
+      margin: EdgeInsets.all(20),
+      behavior: SnackBarBehavior.floating,
+      duration: Duration(hours: 24),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      backgroundColor: googleButtonBg,
+      action: SnackBarAction(
+        textColor: error,
+        label: "Get It",
+        onPressed: () {
+          setState(() {
+            _validateText = false;
+          });
+          fetchDetails();
+          _controllerWord.text = '';
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        },
+      ),
+    ));
+  }
+
   showToastMessage(message) {
     Fluttertoast.showToast(
         msg: message,
-        toastLength: Toast.LENGTH_SHORT,
+        toastLength: Toast.LENGTH_LONG,
         gravity: ToastGravity.CENTER,
         backgroundColor: googleButtonBg,
         textColor: googleButtonTextLight,
@@ -227,12 +302,14 @@ class _RandomWordState extends State<RandomWord> {
     });
   }
 
-  processWithIncorrect() {
-    setState(() {
-      _incorrect = _incorrect + 1;
-    });
-    updateCount('incorrect');
-    showToastMessage(getDontTapMeText(userName));
+  processWithValidation() {
+    {
+      if (isTextEmpty) {
+        updateCount('Empty');
+        showSnackBar('You gave up. $_word is correct word for the sentence');
+      } else
+        validateInput();
+    }
   }
 
   updateCount(String type) {

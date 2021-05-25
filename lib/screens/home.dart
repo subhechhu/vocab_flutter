@@ -97,9 +97,7 @@ class _HomeState extends State<Home> {
                     child: InkWell(
                         splashColor: googleButtonBg,
                         onTap: () {
-                          dbHelper.getRandomData().then((value) {
-                            print(value.toString());
-                          });
+                          Navigator.pushNamed(context, '/random_sentence');
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),

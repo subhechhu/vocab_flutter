@@ -93,6 +93,11 @@ class _AddWordState extends State<AddWord> {
             child: Column(
               children: [
                 TextFormField(
+                  onTap: () {
+                    action == 'Modify Word'
+                        ? showToast('Unable to modify main word')
+                        : print('adding word');
+                  },
                   readOnly: action == 'Modify Word' ? true : false,
                   showCursor: action == 'Modify Word' ? false : true,
                   controller: _controllerWord,
@@ -332,14 +337,8 @@ class _AddWordState extends State<AddWord> {
             words.id = insert;
             pushToFirebase(words);
 
-            Fluttertoast.showToast(
-                msg:
-                    "${_controllerWord.value.text.trim().toLowerCase()} added to Database",
-                toastLength: Toast.LENGTH_SHORT,
-                gravity: ToastGravity.CENTER,
-                backgroundColor: googleButtonBg,
-                textColor: googleButtonTextLight,
-                fontSize: 16.0);
+            showToast(
+                "${_controllerWord.value.text.trim().toLowerCase()} added to Database");
 
             _controllerWord.text = '';
             clearFields();
@@ -441,5 +440,15 @@ class _AddWordState extends State<AddWord> {
       'meaning': words.meaning,
       'sentence': words.sentence
     });
+  }
+
+  showToast(message) {
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: googleButtonBg,
+        textColor: googleButtonTextLight,
+        fontSize: 16.0);
   }
 }
