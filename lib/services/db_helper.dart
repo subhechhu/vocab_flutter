@@ -77,7 +77,7 @@ class DbHelper {
     return update;
   }
 
-  Future<int> deleteDog(int id) async {
+  Future<int> deleteWord(int id) async {
     final db = await _database;
     int delete = await db.delete(
       'words',

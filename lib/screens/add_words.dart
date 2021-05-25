@@ -38,6 +38,8 @@ class _AddWordState extends State<AddWord> {
   String action;
   String _userId;
 
+  Words words;
+
   @override
   void dispose() {
     _controllerWord.dispose();
@@ -63,9 +65,8 @@ class _AddWordState extends State<AddWord> {
     _userId = data['userId'];
 
     if (action == 'Modify Word') {
-      Words words = data['word'];
+      words = data['word'];
 
-      print('-------------------- word: ${words.toString()}');
       _controllerWord.text = words.word;
       _controllerMeaning.text = words.meaning;
       _controllerPronunciation.text = words.pronunciation;
@@ -76,13 +77,13 @@ class _AddWordState extends State<AddWord> {
       backgroundColor: primaryColor,
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: googleButtonText,
+          color: googleButtonTextLight,
         ),
         backgroundColor: primaryColor,
         elevation: 0,
         title: Text(
           action,
-          style: TextStyle(color: googleButtonText, letterSpacing: 1.5),
+          style: TextStyle(color: googleButtonTextLight, letterSpacing: 1.5),
         ),
         centerTitle: true,
       ),
@@ -92,6 +93,27 @@ class _AddWordState extends State<AddWord> {
           child: SingleChildScrollView(
             child: Column(
               children: [
+                action == 'Modify Word'
+                    ? Container()
+                    : Row(
+                        children: [
+                          Text(
+                            'Add Manually',
+                            style: TextStyle(
+                                fontSize: 20, color: googleButtonText),
+                          ),
+                          Switch(
+                            onChanged: toggleSwitch,
+                            value: _hasFetchedMeaning,
+                            activeColor: googleButtonText,
+                            inactiveThumbColor: googleButtonTextLight,
+                            inactiveTrackColor: googleButtonTextLight,
+                          ),
+                        ],
+                      ),
+                SizedBox(
+                  height: 10,
+                ),
                 TextFormField(
                   onTap: () {
                     action == 'Modify Word'
@@ -252,7 +274,7 @@ class _AddWordState extends State<AddWord> {
                               onTap: () {
                                 action == 'Add Word'
                                     ? clearFields()
-                                    : print('code to delete word');
+                                    : deleteConfirmation();
                               },
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
@@ -289,39 +311,55 @@ class _AddWordState extends State<AddWord> {
     );
   }
 
+  void toggleSwitch(bool value) {
+    setState(() {
+      _hasFetchedMeaning = !_hasFetchedMeaning;
+    });
+  }
+
   verifyInput() {
     if (action == 'Add Word') {
+      // add new word
       if (!_hasFetchedMeaning) {
+        // to fetch the details of word from owlbot server, if false, fetch
+
         setState(() {
-          _controllerWord.text.isEmpty
-              ? _validateWord = true
+          _controllerWord.text.isEmpty // checks if word section is empty
+              ? _validateWord =
+                  true // if some one presses get button with empty word, show error message 'Word Cannot Be Empty'
               : _validateWord = false;
         });
 
-        if (_controllerWord.text.isEmpty) return;
+        if (_controllerWord.text.isEmpty)
+          return; // nothing to fetch from owlbot server
         pr.style(
             message:
-                'Fetching details for ${_controllerWord.value.text.trim()}');
+                'Fetching details for ${_controllerWord.value.text.trim().toUpperCase()}');
         pr.show();
-        getDetailsForWord();
+        getDetailsForWord(); // get details from server for the word
       } else {
-        // if all details is fetched, next add details to DB & Firebase
+        // if all details is fetched from server, add details to DB & Firebase
         setState(() {
-          _controllerWord.text.isEmpty
+          _controllerWord.text
+                  .isEmpty // checks if word section is empty, throws error is yes
               ? _validateWord = true
               : _validateWord = false;
-          _controllerPronunciation.text.isEmpty
+          _controllerPronunciation.text
+                  .isEmpty // checks if pronunciation section is empty, throws error if yes
               ? _validatPronunciation = true
               : _validatPronunciation = false;
-          _controllerMeaning.text.isEmpty
+          _controllerMeaning.text
+                  .isEmpty // checks if meaning section is emptym throws error is yes
               ? _validateMeaning = true
               : _validateMeaning = false;
         });
         if (_controllerWord.text.isEmpty ||
             _controllerPronunciation.text.isEmpty ||
-            _controllerMeaning.text.isEmpty) return;
+            _controllerMeaning.text.isEmpty)
+          return; // if any of first 3 section is empty, return
 
         Words words = Words(
+            // create Word class to add it to DB & FB
             correct: 0,
             incorrect: 0,
             word: _controllerWord.value.text.trim().toLowerCase(),
@@ -330,24 +368,24 @@ class _AddWordState extends State<AddWord> {
                 _controllerPronunciation.value.text.trim().toLowerCase(),
             sentence: _controllerSentence.value.text.trim().toLowerCase());
 
-        print(words.toString());
-
         dbHelper.insertWord(words).then((int insert) {
           if (insert != 0) {
             words.id = insert;
-            pushToFirebase(words);
+            addToFirebase(words); // add data to firebase, with id above
 
             showToast(
                 "${_controllerWord.value.text.trim().toLowerCase()} added to Database");
 
             _controllerWord.text = '';
-            clearFields();
+            clearFields(); // clear all the fields for new words & details
 
             setState(() {
-              _hasFetchedMeaning = false;
+              _hasFetchedMeaning =
+                  false; // ready to fetch meaning for next word
             });
           } else {
             Fluttertoast.showToast(
+                // data insert on local db failed
                 msg: "Failed. Something went wrong",
                 toastLength: Toast.LENGTH_SHORT,
                 gravity: ToastGravity.CENTER,
@@ -358,7 +396,40 @@ class _AddWordState extends State<AddWord> {
         });
       }
     } else {
-      // if coming from the list, modify the details.
+      // modfiy old word
+      setState(() {
+        _controllerWord.text
+                .isEmpty // checks if word section is empty, throws error is yes
+            ? _validateWord = true
+            : _validateWord = false;
+        _controllerPronunciation.text
+                .isEmpty // checks if pronunciation section is empty, throws error if yes
+            ? _validatPronunciation = true
+            : _validatPronunciation = false;
+        _controllerMeaning.text
+                .isEmpty // checks if meaning section is emptym throws error is yes
+            ? _validateMeaning = true
+            : _validateMeaning = false;
+      });
+      if (_controllerWord.text.isEmpty ||
+          _controllerPronunciation.text.isEmpty ||
+          _controllerMeaning.text.isEmpty)
+        return; // if any of first 3 section is empty, return
+
+      if (words.meaning == _controllerMeaning.text &&
+          words.sentence == _controllerSentence.text &&
+          words.pronunciation == _controllerPronunciation.text) {
+        showToast('Nothing to modify');
+        Navigator.pop(context, {'shouldRefresh': false});
+      } else {
+        Words updatedWords = words;
+        updatedWords.meaning = _controllerMeaning.text;
+        updatedWords.pronunciation = _controllerPronunciation.text;
+        updatedWords.sentence = _controllerSentence.text;
+        dbHelper
+            .updateWord(updatedWords)
+            .then((value) => updateFirebase(updatedWords));
+      }
     }
   }
 
@@ -421,6 +492,9 @@ class _AddWordState extends State<AddWord> {
         content: Text('Unable to fetch meaning. Please add it manually'),
         duration: Duration(seconds: 5),
       ));
+      setState(() {
+        _hasFetchedMeaning = true;
+      });
     }
   }
 
@@ -430,7 +504,7 @@ class _AddWordState extends State<AddWord> {
     _controllerPronunciation.text = '';
   }
 
-  void pushToFirebase(Words words) {
+  void addToFirebase(Words words) {
     firestore.collection(_userId).doc(words.word).set({
       'word': words.word,
       'id': words.id,
@@ -442,6 +516,16 @@ class _AddWordState extends State<AddWord> {
     });
   }
 
+  void updateFirebase(Words words) {
+    firestore.collection(_userId).doc(words.word).update({
+      'word': words.word,
+      'id': words.id,
+      'pronunciation': words.pronunciation,
+      'meaning': words.meaning,
+      'sentence': words.sentence
+    }).then((value) => Navigator.pop(context, {'shouldRefresh': true}));
+  }
+
   showToast(message) {
     Fluttertoast.showToast(
         msg: message,
@@ -450,5 +534,40 @@ class _AddWordState extends State<AddWord> {
         backgroundColor: googleButtonBg,
         textColor: googleButtonTextLight,
         fontSize: 16.0);
+  }
+
+  deleteConfirmation() {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+      content: Text(
+        'Deleted data cannot be retrived. Do you wish to continue? If yes, press PROCEED. Ignore(10 sec) if no.',
+        style: TextStyle(letterSpacing: 1, color: googleButtonText),
+      ),
+      margin: EdgeInsets.all(20),
+      behavior: SnackBarBehavior.floating,
+      duration: Duration(seconds: 10),
+      shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.all(Radius.circular(10))),
+      backgroundColor: googleButtonBg,
+      action: SnackBarAction(
+        textColor: error,
+        label: "PROCEED",
+        onPressed: () {
+          deleteItemFromDB();
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+        },
+      ),
+    ));
+  }
+
+  deleteItemFromDB() {
+    dbHelper.deleteWord(words.id).then((value) => deleteItemFromFB());
+  }
+
+  deleteItemFromFB() {
+    firestore
+        .collection(_userId)
+        .doc(words.word)
+        .delete()
+        .then((value) => Navigator.pop(context, {'shouldRefresh': true}));
   }
 }

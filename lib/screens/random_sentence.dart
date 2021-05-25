@@ -172,9 +172,14 @@ class _RandomSentenceState extends State<RandomSentence> {
                       isTextEmpty = false;
                     });
                 },
+                onFieldSubmitted: (term) {
+                  _validateText // is validate is already pressed
+                      ? print('validating')
+                      : processWithValidation();
+                },
                 keyboardType: TextInputType.emailAddress,
                 controller: _controllerWord,
-                textInputAction: TextInputAction.go,
+                textInputAction: TextInputAction.done,
                 style: TextStyle(color: googleButtonText, letterSpacing: 1),
                 cursorColor: googleButtonTextLight,
                 decoration: InputDecoration(

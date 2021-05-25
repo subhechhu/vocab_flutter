@@ -14,18 +14,13 @@ class _RecentWordsState extends State<RecentWords> {
   List<Words> wordList;
   int listSize = 0;
   String userId = '';
+  int _defaultRecentSize = 15;
+  TextEditingController _controllerListSize = TextEditingController();
 
   @override
   void initState() {
     super.initState();
-    dbHelper
-        .getDbInstance()
-        .then((value) => dbHelper.getRecentWords(20).then((value) {
-              setState(() {
-                wordList = value;
-                listSize = value.length;
-              });
-            }));
+    dbHelper.getDbInstance().then((value) => fetchRecent(_defaultRecentSize));
     getSharedPreference();
   }
 
@@ -34,8 +29,26 @@ class _RecentWordsState extends State<RecentWords> {
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
+        actions: [
+          Tooltip(
+            message: 'Edit List Size',
+            child: IconButton(
+              icon: Icon(Icons.edit),
+              onPressed: () {
+                _controllerListSize.text = _defaultRecentSize.toString();
+                _displayTextInputDialog(context);
+              },
+              color: googleButtonTextLight,
+            ),
+          )
+        ],
+        title: Text(
+          'Recent Words',
+          style: TextStyle(color: googleButtonTextLight, letterSpacing: 1.5),
+        ),
+        centerTitle: true,
         iconTheme: IconThemeData(
-          color: googleButtonText,
+          color: googleButtonTextLight,
         ),
         backgroundColor: primaryColor,
         elevation: 0,
@@ -52,12 +65,17 @@ class _RecentWordsState extends State<RecentWords> {
                         color: primaryColor,
                         child: InkWell(
                             splashColor: googleButtonBg,
-                            onTap: () {
-                              Navigator.pushNamed(context, '/add', arguments: {
-                                'action': 'Modify Word',
-                                'word': wordList[index],
-                                'userId': userId,
-                              });
+                            onTap: () async {
+                              dynamic result = await Navigator.pushNamed(
+                                  context, '/add',
+                                  arguments: {
+                                    'action': 'Modify Word',
+                                    'word': wordList[index],
+                                    'userId': userId,
+                                  });
+                              if (result['shouldRefresh']) {
+                                fetchRecent(_defaultRecentSize);
+                              }
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(20),
@@ -175,5 +193,54 @@ class _RecentWordsState extends State<RecentWords> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     userId = prefs.getString('userId') ?? '';
     print('userID: $userId');
+  }
+
+  fetchRecent(defaultRecentSize) {
+    dbHelper.getRecentWords(defaultRecentSize).then((value) {
+      setState(() {
+        wordList = value;
+        listSize = value.length;
+      });
+    });
+  }
+
+  Future<void> _displayTextInputDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            content: TextField(
+              onChanged: (value) {
+                setState(() {});
+              },
+              keyboardType: TextInputType.number,
+              controller: _controllerListSize,
+              decoration: InputDecoration(
+                  enabledBorder: OutlineInputBorder(
+                    borderSide: BorderSide(color: dialogBg, width: 1.0),
+                  ),
+                  focusedBorder: new OutlineInputBorder(
+                    borderSide: BorderSide(color: dialogBg, width: 1.5),
+                  ),
+                  border: const OutlineInputBorder(),
+                  labelStyle:
+                      new TextStyle(letterSpacing: 1.5, color: dialogBg),
+                  labelText: 'List Size'),
+            ),
+            actions: <Widget>[
+              TextButton(
+                  onPressed: () {
+                    _defaultRecentSize = int.parse(_controllerListSize.text);
+                    fetchRecent(_defaultRecentSize);
+                    Navigator.pop(context);
+                  },
+                  child: Text(
+                    'SET',
+                    style: TextStyle(
+                        letterSpacing: 1, fontSize: 16, color: primaryColor),
+                  )),
+            ],
+          );
+        });
   }
 }

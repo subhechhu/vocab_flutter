@@ -18,14 +18,7 @@ class _AllWordsState extends State<AllWords> {
   @override
   void initState() {
     super.initState();
-    dbHelper
-        .getDbInstance()
-        .then((value) => dbHelper.getAllWords().then((value) {
-              setState(() {
-                wordList = value;
-                listSize = value.length;
-              });
-            }));
+    dbHelper.getDbInstance().then((value) => fetchAllWords());
     getSharedPreference();
   }
 
@@ -34,11 +27,16 @@ class _AllWordsState extends State<AllWords> {
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
+        title: Text(
+          'All Words',
+          style: TextStyle(color: googleButtonTextLight, letterSpacing: 1.5),
+        ),
         iconTheme: IconThemeData(
-          color: googleButtonText,
+          color: googleButtonTextLight,
         ),
         backgroundColor: primaryColor,
         elevation: 0,
+        centerTitle: true,
       ),
       body: Column(
         mainAxisAlignment: MainAxisAlignment.center,
@@ -52,12 +50,17 @@ class _AllWordsState extends State<AllWords> {
                         color: primaryColor,
                         child: InkWell(
                             splashColor: googleButtonBg,
-                            onTap: () {
-                              Navigator.pushNamed(context, '/add', arguments: {
-                                'action': 'Modify Word',
-                                'word': wordList[index],
-                                'userId': userId,
-                              });
+                            onTap: () async {
+                              dynamic result = await Navigator.pushNamed(
+                                  context, '/add',
+                                  arguments: {
+                                    'action': 'Modify Word',
+                                    'word': wordList[index],
+                                    'userId': userId,
+                                  });
+                              if (result['shouldRefresh']) {
+                                fetchAllWords();
+                              }
                             },
                             child: Padding(
                               padding: const EdgeInsets.all(20),
@@ -175,5 +178,14 @@ class _AllWordsState extends State<AllWords> {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     userId = prefs.getString('userId') ?? '';
     print('userID: $userId');
+  }
+
+  fetchAllWords() {
+    dbHelper.getAllWords().then((value) {
+      setState(() {
+        wordList = value;
+        listSize = value.length;
+      });
+    });
   }
 }
