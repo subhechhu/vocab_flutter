@@ -6,6 +6,7 @@ import 'package:vocab/util/colors.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:vocab/util/messages.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:vocab/util/playWord.dart';
 
 class RandomWord extends StatefulWidget {
   @override
@@ -14,6 +15,7 @@ class RandomWord extends StatefulWidget {
 
 class _RandomWordState extends State<RandomWord> {
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  PlayWord playWord = PlayWord();
   DbHelper dbHelper = DbHelper();
   ProgressDialog pr;
   String _word = '';
@@ -27,12 +29,19 @@ class _RandomWordState extends State<RandomWord> {
   @override
   void initState() {
     super.initState();
+    playWord.initTTS();
     dbHelper.getDbInstance().then((value) => fetchDetails());
     _prefs.then((SharedPreferences prefs) {
       var str = prefs.getString('displayName' ?? '');
       var parts = str.split(':');
       userName = parts[0].trim();
     });
+  }
+
+  @override
+  void dispose() {
+    playWord.stopTTS();
+    super.dispose();
   }
 
   @override
@@ -169,7 +178,9 @@ class _RandomWordState extends State<RandomWord> {
                 height: 75,
               ),
               FloatingActionButton(
-                onPressed: () {},
+                onPressed: () {
+                  playWord.speak(_word);
+                },
                 backgroundColor: googleButtonBg,
                 splashColor: googleButtonBg,
                 child: Icon(

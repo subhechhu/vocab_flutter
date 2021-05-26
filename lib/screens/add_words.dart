@@ -381,10 +381,12 @@ class _AddWordState extends State<AddWord> {
             _controllerWord.text = '';
             clearFields(); // clear all the fields for new words & details
 
-            setState(() {
-              _hasFetchedMeaning =
-                  false; // ready to fetch meaning for next word
-            });
+            if (!_switchState) {
+              setState(() {
+                _hasFetchedMeaning =
+                    false; // ready to fetch meaning for next word
+              });
+            }
           } else {
             Fluttertoast.showToast(
                 // data insert on local db failed

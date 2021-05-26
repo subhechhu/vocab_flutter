@@ -171,7 +171,9 @@ class _HomeState extends State<Home> {
                           dynamic result = await Navigator.pushNamed(
                               context, '/view_recent');
                           if (result['shouldRefresh']) {
-                            getTotalRows();
+                            setState(() {
+                              _totalWords = _totalWords - 1;
+                            });
                           }
                         },
                         child: Padding(
@@ -212,7 +214,9 @@ class _HomeState extends State<Home> {
                           dynamic result =
                               await Navigator.pushNamed(context, '/view_all');
                           if (result['shouldRefresh']) {
-                            getTotalRows();
+                            setState(() {
+                              _totalWords = _totalWords - 1;
+                            });
                           }
                         },
                         child: Padding(
