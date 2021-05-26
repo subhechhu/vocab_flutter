@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
+import 'package:fluttertoast/fluttertoast.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:vocab/services/authenticaation.dart';
+import 'package:vocab/services/words.dart';
 import 'package:vocab/util/colors.dart';
 
 import 'package:vocab/services/db_helper.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 
 class Home extends StatefulWidget {
   @override
@@ -11,32 +15,36 @@ class Home extends StatefulWidget {
 
 class _HomeState extends State<Home> {
   Authentication authentication = Authentication();
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   String _email = '';
-  String _userId = '';
-
-  bool _freshLogin =
-      false; // is true read data from firebase and store locally or do nothing
+  String _userId;
+  int _totalWords = 0;
+  bool _isAddingToDBfromFB = false;
 
   DbHelper dbHelper = DbHelper();
 
   @override
   void initState() {
     super.initState();
-    dbHelper.getDbInstance();
+    dbHelper.getDbInstance().then((value) => getTotalRows());
+    _prefs.then((SharedPreferences prefs) {
+      _email = prefs.getString('email');
+      _userId = prefs.getString('userId');
+
+      if (prefs.getBool('isFreshLogin')) getDataFromFirebase(_userId);
+    });
   }
 
   @override
   Widget build(BuildContext context) {
-    Map data = ModalRoute.of(context).settings.arguments;
-    _email = data['email'];
-    _freshLogin = data['freshLogin'];
-    _userId = data['userId'];
     return Scaffold(
       backgroundColor: primaryColor,
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          Navigator.pushNamed(context, '/add',
+        onPressed: () async {
+          await Navigator.pushNamed(context, '/add',
               arguments: {'action': 'Add Word', 'userId': _userId});
+          getTotalRows();
         },
         backgroundColor: googleButtonBg,
         splashColor: googleButtonBg,
@@ -50,6 +58,19 @@ class _HomeState extends State<Home> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
+            Align(
+              alignment: Alignment.center,
+              child: Text(
+                _email,
+                style: TextStyle(
+                    color: googleButtonTextLight,
+                    letterSpacing: 1.5,
+                    fontSize: 15),
+              ),
+            ),
+            SizedBox(
+              height: 25,
+            ),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: [
@@ -60,7 +81,11 @@ class _HomeState extends State<Home> {
                     child: InkWell(
                         splashColor: googleButtonBg,
                         onTap: () {
-                          Navigator.pushNamed(context, '/random_word');
+                          if (_totalWords == 0) {
+                            showToast('Add some words first');
+                          } else {
+                            Navigator.pushNamed(context, '/random_word');
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -97,7 +122,11 @@ class _HomeState extends State<Home> {
                     child: InkWell(
                         splashColor: googleButtonBg,
                         onTap: () {
-                          Navigator.pushNamed(context, '/random_sentence');
+                          if (_totalWords == 0) {
+                            showToast('Add some words first');
+                          } else {
+                            Navigator.pushNamed(context, '/random_sentence');
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -138,11 +167,12 @@ class _HomeState extends State<Home> {
                     color: googleButtonBg,
                     child: InkWell(
                         splashColor: googleButtonBg,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/view_recent',
-                          );
+                        onTap: () async {
+                          dynamic result = await Navigator.pushNamed(
+                              context, '/view_recent');
+                          if (result['shouldRefresh']) {
+                            getTotalRows();
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -178,11 +208,12 @@ class _HomeState extends State<Home> {
                     color: googleButtonBg,
                     child: InkWell(
                         splashColor: googleButtonBg,
-                        onTap: () {
-                          Navigator.pushNamed(
-                            context,
-                            '/view_all',
-                          );
+                        onTap: () async {
+                          dynamic result =
+                              await Navigator.pushNamed(context, '/view_all');
+                          if (result['shouldRefresh']) {
+                            getTotalRows();
+                          }
                         },
                         child: Padding(
                           padding: const EdgeInsets.symmetric(vertical: 20),
@@ -217,16 +248,74 @@ class _HomeState extends State<Home> {
             Align(
               alignment: Alignment.center,
               child: Text(
-                _email,
+                'Total Words: $_totalWords',
                 style: TextStyle(
                     color: googleButtonTextLight,
                     letterSpacing: 1.5,
-                    fontSize: 15),
+                    fontSize: 18),
               ),
             ),
+            SizedBox(height: 10),
+            _isAddingToDBfromFB
+                ? LinearProgressIndicator(
+                    backgroundColor: primaryColor,
+                    minHeight: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(googleButtonText),
+                  )
+                : Container()
           ],
         ),
       ),
     );
+  }
+
+  getDataFromFirebase(_userId) {
+    firestore
+        .collection(_userId)
+        .get()
+        .then((QuerySnapshot<Map<String, dynamic>> value) {
+      List<QueryDocumentSnapshot<Map<String, dynamic>>> list = value.docs;
+      if (list.isNotEmpty) {
+        showToast('Downloading your list...');
+        setState(() {
+          _isAddingToDBfromFB = true;
+        });
+        for (int i = 0; i < list.length; i++) {
+          Words words = Words();
+          words.word = list[i].get('word');
+          words.meaning = list[i].get('meaning');
+          words.sentence = list[i].get('sentence');
+          words.pronunciation = list[i].get('pronunciation');
+          words.time = list[i].get('time');
+          words.incorrect = 0;
+          words.correct = 0;
+          dbHelper.insertWord(words);
+        }
+        getTotalRows();
+        setState(() {
+          _isAddingToDBfromFB = false;
+        });
+      } else {
+        print('empty firebase');
+      }
+    });
+  }
+
+  showToast(message) {
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: googleButtonBg,
+        textColor: googleButtonTextLight,
+        fontSize: 16.0);
+  }
+
+  getTotalRows() {
+    dbHelper.getTotalRows().then((int count) {
+      setState(() {
+        _totalWords = count;
+      });
+    });
   }
 }

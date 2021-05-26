@@ -40,6 +40,7 @@ class Authentication {
       pref.setString("email", user.email);
       pref.setString("displayName", user.displayName);
       pref.setBool("isLoggedIn", true);
+      pref.setBool('isFreshLogin', true);
       pref.setString("userId", user.uid);
     });
 

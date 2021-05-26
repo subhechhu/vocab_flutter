@@ -11,13 +11,20 @@ class DbHelper {
         join(await getDatabasesPath(), 'vocab_database.db'),
         onCreate: (db, version) {
           return db.execute(
-            'CREATE TABLE words (id INTEGER PRIMARY KEY AUTOINCREMENT, correct INTEGER DEFAULT 0, incorrect INTEGER DEFAULT 0, word TEXT UNIQUE, pronunciation TEXT, meaning TEXT, sentence TEXT)',
+            'CREATE TABLE words (correct INTEGER DEFAULT 0, incorrect INTEGER DEFAULT 0, word TEXT UNIQUE, pronunciation TEXT, meaning TEXT, sentence TEXT, time INTEGER DEFAULT 0)',
           );
         },
-        version: 1,
+        version: 3,
       );
     }
     return _database;
+  }
+
+  Future<int> getTotalRows() async {
+    final db = await _database;
+    int count =
+        Sqflite.firstIntValue(await db.rawQuery('SELECT COUNT(*) FROM words'));
+    return count;
   }
 
   Future<int> insertWord(Words words) async {
@@ -38,31 +45,29 @@ class DbHelper {
         await db.query('words', orderBy: 'word');
     return List.generate(maps.length, (i) {
       return Words(
-        id: maps[i]['id'],
-        word: maps[i]['word'],
-        pronunciation: maps[i]['pronunciation'],
-        meaning: maps[i]['meaning'],
-        sentence: maps[i]['sentence'],
-        correct: maps[i]['correct'],
-        incorrect: maps[i]['incorrect'],
-      );
+          word: maps[i]['word'],
+          pronunciation: maps[i]['pronunciation'],
+          meaning: maps[i]['meaning'],
+          sentence: maps[i]['sentence'],
+          correct: maps[i]['correct'],
+          incorrect: maps[i]['incorrect'],
+          time: maps[i]['time']);
     });
   }
 
   Future<List<Words>> getRecentWords(int count) async {
     final db = await _database;
     final List<Map<String, dynamic>> maps =
-        await db.query('words', limit: count, orderBy: 'id DESC');
+        await db.query('words', limit: count, orderBy: 'time DESC');
     return List.generate(maps.length, (i) {
       return Words(
-        id: maps[i]['id'],
-        word: maps[i]['word'],
-        pronunciation: maps[i]['pronunciation'],
-        meaning: maps[i]['meaning'],
-        sentence: maps[i]['sentence'],
-        correct: maps[i]['correct'],
-        incorrect: maps[i]['incorrect'],
-      );
+          word: maps[i]['word'],
+          pronunciation: maps[i]['pronunciation'],
+          meaning: maps[i]['meaning'],
+          sentence: maps[i]['sentence'],
+          correct: maps[i]['correct'],
+          incorrect: maps[i]['incorrect'],
+          time: maps[i]['time']);
     });
   }
 
@@ -71,18 +76,18 @@ class DbHelper {
     int update = await db.update(
       'words',
       words.toMap(),
-      where: 'id = ?',
-      whereArgs: [words.id],
+      where: 'word = ?',
+      whereArgs: [words.word],
     );
     return update;
   }
 
-  Future<int> deleteWord(int id) async {
+  Future<int> deleteWord(word) async {
     final db = await _database;
     int delete = await db.delete(
       'words',
-      where: 'id = ?',
-      whereArgs: [id],
+      where: 'word = ?',
+      whereArgs: [word],
     );
     return delete;
   }
@@ -93,14 +98,13 @@ class DbHelper {
         await db.rawQuery('select * from words order by random() limit 1');
     if (maps.length > 0) {
       return Words(
-        id: maps[0]['id'],
-        word: maps[0]['word'],
-        pronunciation: maps[0]['pronunciation'],
-        meaning: maps[0]['meaning'],
-        sentence: maps[0]['sentence'],
-        correct: maps[0]['correct'],
-        incorrect: maps[0]['incorrect'],
-      );
+          word: maps[0]['word'],
+          pronunciation: maps[0]['pronunciation'],
+          meaning: maps[0]['meaning'],
+          sentence: maps[0]['sentence'],
+          correct: maps[0]['correct'],
+          incorrect: maps[0]['incorrect'],
+          time: maps[0]['time']);
     }
     return null;
   }

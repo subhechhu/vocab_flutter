@@ -27,6 +27,7 @@ class _AddWordState extends State<AddWord> {
   bool _validatPronunciation = false;
   bool _validateMeaning = false;
   bool _hasFetchedMeaning = false;
+  bool _switchState = false;
 
   final _controllerWord = TextEditingController();
   final _controllerPronunciation = TextEditingController();
@@ -104,7 +105,7 @@ class _AddWordState extends State<AddWord> {
                           ),
                           Switch(
                             onChanged: toggleSwitch,
-                            value: _hasFetchedMeaning,
+                            value: _switchState,
                             activeColor: googleButtonText,
                             inactiveThumbColor: googleButtonTextLight,
                             inactiveTrackColor: googleButtonTextLight,
@@ -240,13 +241,13 @@ class _AddWordState extends State<AddWord> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    getAddIcon(),
-                                    color: googleButtonText,
-                                  ),
-                                  SizedBox(
-                                    width: 15,
-                                  ),
+                                  // Icon(
+                                  //   getAddIcon(),
+                                  //   color: googleButtonText,
+                                  // ),
+                                  // SizedBox(
+                                  //   width: 15,
+                                  // ),
                                   Text(
                                     getAddText(),
                                     textAlign: TextAlign.center,
@@ -279,15 +280,15 @@ class _AddWordState extends State<AddWord> {
                               child: Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  Icon(
-                                    action == 'Add Word'
-                                        ? Icons.clear
-                                        : Icons.delete,
-                                    color: googleButtonText,
-                                  ),
-                                  SizedBox(
-                                    width: 15,
-                                  ),
+                                  // Icon(
+                                  //   action == 'Add Word'
+                                  //       ? Icons.clear
+                                  //       : Icons.delete,
+                                  //   color: googleButtonText,
+                                  // ),
+                                  // SizedBox(
+                                  //   width: 15,
+                                  // ),
                                   Text(
                                     action == 'Add Word' ? 'Clear' : 'Delete',
                                     textAlign: TextAlign.center,
@@ -314,6 +315,7 @@ class _AddWordState extends State<AddWord> {
   void toggleSwitch(bool value) {
     setState(() {
       _hasFetchedMeaning = !_hasFetchedMeaning;
+      _switchState = !_switchState;
     });
   }
 
@@ -366,11 +368,11 @@ class _AddWordState extends State<AddWord> {
             meaning: _controllerMeaning.value.text.trim().toLowerCase(),
             pronunciation:
                 _controllerPronunciation.value.text.trim().toLowerCase(),
-            sentence: _controllerSentence.value.text.trim().toLowerCase());
+            sentence: _controllerSentence.value.text.trim().toLowerCase(),
+            time: DateTime.now().millisecondsSinceEpoch);
 
         dbHelper.insertWord(words).then((int insert) {
           if (insert != 0) {
-            words.id = insert;
             addToFirebase(words); // add data to firebase, with id above
 
             showToast(
@@ -477,7 +479,7 @@ class _AddWordState extends State<AddWord> {
       String sentence = '';
       for (Definitions definations in meaningResponse.definitions) {
         meaning = definations.definition + "\n\n" + meaning;
-        sentence = definations.example + "\n\n" + meaning;
+        sentence = definations.example + "\n\n" + sentence;
       }
 
       _controllerMeaning.text = meaning;
@@ -507,19 +509,18 @@ class _AddWordState extends State<AddWord> {
   void addToFirebase(Words words) {
     firestore.collection(_userId).doc(words.word).set({
       'word': words.word,
-      'id': words.id,
       'correct': words.correct,
       'incorrect': words.incorrect,
       'pronunciation': words.pronunciation,
       'meaning': words.meaning,
-      'sentence': words.sentence
+      'sentence': words.sentence,
+      'time': words.time
     });
   }
 
   void updateFirebase(Words words) {
     firestore.collection(_userId).doc(words.word).update({
       'word': words.word,
-      'id': words.id,
       'pronunciation': words.pronunciation,
       'meaning': words.meaning,
       'sentence': words.sentence
@@ -560,7 +561,7 @@ class _AddWordState extends State<AddWord> {
   }
 
   deleteItemFromDB() {
-    dbHelper.deleteWord(words.id).then((value) => deleteItemFromFB());
+    dbHelper.deleteWord(words.word).then((value) => deleteItemFromFB());
   }
 
   deleteItemFromFB() {
