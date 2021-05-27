@@ -55,13 +55,13 @@ class _RandomWordState extends State<RandomWord> {
       backgroundColor: primaryColor,
       appBar: AppBar(
         iconTheme: IconThemeData(
-          color: googleButtonText,
+          color: googleButtonTextLight,
         ),
         backgroundColor: primaryColor,
         elevation: 0,
         title: Text(
           'Test By Words',
-          style: TextStyle(color: googleButtonText, letterSpacing: 1.5),
+          style: TextStyle(color: googleButtonTextLight, letterSpacing: 1.5),
         ),
         centerTitle: true,
       ),
