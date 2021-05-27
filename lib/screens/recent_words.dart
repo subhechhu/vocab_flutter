@@ -116,9 +116,9 @@ class _RecentWordsState extends State<RecentWords> {
                                   shape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.all(Radius.circular(5))),
-                                  backgroundColor: googleButtonBg,
+                                  backgroundColor: snackbarColor,
                                   action: SnackBarAction(
-                                    textColor: error,
+                                    textColor: lightRed,
                                     label: "UNDO",
                                     onPressed: () {
                                       _isSnackbarActive = false;
@@ -147,6 +147,7 @@ class _RecentWordsState extends State<RecentWords> {
                           },
                           background: Container(color: error),
                           child: Card(
+                            elevation: 0,
                             color: primaryColor,
                             child: InkWell(
                                 splashColor: googleButtonBg,
@@ -297,14 +298,14 @@ class _RecentWordsState extends State<RecentWords> {
               controller: _controllerListSize,
               decoration: InputDecoration(
                   enabledBorder: OutlineInputBorder(
-                    borderSide: BorderSide(color: dialogBg, width: 1.0),
+                    borderSide: BorderSide(color: snackbarColor, width: 1.0),
                   ),
                   focusedBorder: new OutlineInputBorder(
-                    borderSide: BorderSide(color: dialogBg, width: 1.5),
+                    borderSide: BorderSide(color: snackbarColor, width: 1.5),
                   ),
                   border: const OutlineInputBorder(),
                   labelStyle:
-                      new TextStyle(letterSpacing: 1.5, color: dialogBg),
+                      new TextStyle(letterSpacing: 1.5, color: snackbarColor),
                   labelText: 'List Size'),
             ),
             actions: <Widget>[

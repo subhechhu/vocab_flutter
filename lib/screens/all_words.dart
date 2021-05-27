@@ -72,25 +72,28 @@ class _AllWordsState extends State<AllWords> {
                 style:
                     TextStyle(color: googleButtonTextLight, letterSpacing: 1.5),
               )
-            : TextField(
-                autofocus: true,
-                controller: _textController,
-                style: TextStyle(color: googleButtonText, letterSpacing: 1.5),
-                cursorColor: googleButtonText,
-                decoration: InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: googleButtonTextLight, width: 1.0),
-                    ),
-                    focusedBorder: new OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: googleButtonText, width: 1.5),
-                    ),
-                    border: const OutlineInputBorder(),
-                    labelStyle: new TextStyle(
-                        color: googleButtonText, letterSpacing: 1.5),
-                    labelText: 'Search Word'),
-                onChanged: onItemChanged,
+            : Container(
+                height: 45,
+                child: TextField(
+                  autofocus: true,
+                  controller: _textController,
+                  style: TextStyle(color: googleButtonText, letterSpacing: 1.5),
+                  cursorColor: googleButtonText,
+                  decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: googleButtonTextLight, width: 1.0),
+                      ),
+                      focusedBorder: new OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: googleButtonText, width: 1.5),
+                      ),
+                      border: const OutlineInputBorder(),
+                      labelStyle: new TextStyle(
+                          color: googleButtonText, letterSpacing: 1.5),
+                      labelText: 'Search Word'),
+                  onChanged: onItemChanged,
+                ),
               ),
         iconTheme: IconThemeData(
           color: googleButtonTextLight,
@@ -189,6 +192,7 @@ class _AllWordsState extends State<AllWords> {
                           },
                           background: Container(color: error),
                           child: Card(
+                            elevation: 0,
                             color: primaryColor,
                             child: InkWell(
                                 splashColor: googleButtonBg,

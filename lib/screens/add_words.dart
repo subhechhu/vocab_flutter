@@ -140,6 +140,8 @@ class _AddWordState extends State<AddWord> {
                             BorderSide(color: googleButtonText, width: 1.5),
                       ),
                       errorText: _validateWord ? 'Word Cannot Be Empty' : null,
+                      errorStyle:
+                          TextStyle(letterSpacing: 1.5, color: lightRed),
                       border: const OutlineInputBorder(),
                       labelStyle: new TextStyle(
                           color: googleButtonText, letterSpacing: 1.5),
@@ -163,6 +165,8 @@ class _AddWordState extends State<AddWord> {
                           ? 'Pronunciation Cannot Be Empty'
                           : null,
                       border: const OutlineInputBorder(),
+                      errorStyle:
+                          TextStyle(letterSpacing: 1.5, color: lightRed),
                       labelStyle: new TextStyle(
                           color: googleButtonText, letterSpacing: 1.5),
                       labelText: 'Pronunciation'),
@@ -186,6 +190,8 @@ class _AddWordState extends State<AddWord> {
                         ),
                         errorText:
                             _validateMeaning ? 'Meaning Cannot Be Empty' : null,
+                        errorStyle:
+                            TextStyle(letterSpacing: 1.5, color: lightRed),
                         border: const OutlineInputBorder(),
                         labelStyle: new TextStyle(
                             color: googleButtonText, letterSpacing: 1.5),
@@ -231,7 +237,7 @@ class _AddWordState extends State<AddWord> {
                       child: SizedBox(
                         height: 50,
                         child: Card(
-                          elevation: 0,
+                          elevation: 2,
                           color: googleButtonBg,
                           child: InkWell(
                               splashColor: googleButtonBg,
@@ -268,7 +274,7 @@ class _AddWordState extends State<AddWord> {
                       child: SizedBox(
                         height: 50,
                         child: Card(
-                          elevation: 0,
+                          elevation: 2,
                           color: googleButtonBg,
                           child: InkWell(
                               splashColor: googleButtonBg,
@@ -493,8 +499,12 @@ class _AddWordState extends State<AddWord> {
       });
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-        content: Text('Unable to fetch meaning. Please add it manually'),
+        content: Text(
+          'Unable to fetch meaning. Please add it manually',
+          style: TextStyle(letterSpacing: 1, color: googleButtonText),
+        ),
         duration: Duration(seconds: 5),
+        backgroundColor: snackbarColor,
       ));
       setState(() {
         _hasFetchedMeaning = true;
@@ -550,9 +560,9 @@ class _AddWordState extends State<AddWord> {
       duration: Duration(seconds: 10),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10))),
-      backgroundColor: googleButtonBg,
+      backgroundColor: snackbarColor,
       action: SnackBarAction(
-        textColor: error,
+        textColor: lightRed,
         label: "PROCEED",
         onPressed: () {
           deleteItemFromDB();

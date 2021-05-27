@@ -46,11 +46,6 @@ class _RandomWordState extends State<RandomWord> {
 
   @override
   Widget build(BuildContext context) {
-    // pr = ProgressDialog(context,
-    //     type: ProgressDialogType.Normal, isDismissible: false, showLogs: true);
-    // pr.style(message: 'Loading Words...');
-    // pr.show();
-
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
@@ -75,136 +70,49 @@ class _RandomWordState extends State<RandomWord> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(
-                    '$_word',
-                    style: TextStyle(
-                        color: googleButtonText,
-                        fontSize: 30,
-                        fontWeight: FontWeight.bold),
-                  ),
+                  renderText('$_word', 30.0, FontWeight.bold),
                 ],
               ),
-              SizedBox(
-                height: 100,
-              ),
+              getSizedBox(100.0, 0.0),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Expanded(
-                    child: Text(
-                      showMeaning ? '$_meaning' : '',
-                      textAlign: TextAlign.center,
-                      style: TextStyle(
-                        color: googleButtonText,
-                        fontSize: 20,
-                      ),
-                    ),
+                    child: showMeaning
+                        ? renderText('$_meaning', 20.0, FontWeight.normal)
+                        : renderText('', 20.0, FontWeight.normal),
                   )
                 ],
               ),
-              SizedBox(
-                height: 150,
-              ),
+              getSizedBox(150.0, 0.0),
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Row(
                     children: [
-                      Column(
-                        children: [
-                          FloatingActionButton(
-                            heroTag: "thumbs_up",
-                            onPressed: () {
-                              setState(() {
-                                showMeaning = false;
-                              });
-                              updateCount("correct");
-                              fetchDetails();
-                              showToastMessage(getShortCorrectMessage());
-                            },
-                            backgroundColor: googleButtonBg,
-                            splashColor: googleButtonBg,
-                            child: Icon(
-                              Icons.thumb_up_alt,
-                              color: googleButtonText,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            '$_correct',
-                            style: TextStyle(
-                                color: googleButtonText,
-                                letterSpacing: 1,
-                                fontSize: 20),
-                          )
-                        ],
-                      ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Column(
-                        children: [
-                          FloatingActionButton(
-                            heroTag: "thumbs_down",
-                            onPressed: () {
-                              fetchDetails();
-                            },
-                            backgroundColor: googleButtonBg,
-                            splashColor: googleButtonBg,
-                            child: Icon(
-                              Icons.thumb_down_alt,
-                              color: googleButtonText,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            '$_incorrect',
-                            style: TextStyle(
-                                color: googleButtonText,
-                                letterSpacing: 1,
-                                fontSize: 20),
-                          )
-                        ],
-                      ),
+                      renderFloatingActionButton(
+                          'correct', Icons.thumb_up_alt, '$_correct'),
+                      getSizedBox(0.0, 20.0),
+                      renderFloatingActionButton(
+                          'incorrect', Icons.thumb_down_alt, '$_incorrect'),
                     ],
                   )
                 ],
               ),
-              SizedBox(
-                height: 75,
-              ),
-              FloatingActionButton(
-                onPressed: () {
-                  playWord.speak(_word);
-                },
-                backgroundColor: googleButtonBg,
-                splashColor: googleButtonBg,
-                child: Icon(
-                  Icons.volume_up_rounded,
-                  color: googleButtonText,
-                ),
-              ),
-              SizedBox(
-                height: 100,
-              ),
+              getSizedBox(75.0, 0.0),
+              getFAB('tts', Icons.volume_up_rounded),
+              getSizedBox(100.0, 0.0),
               TextButton(
-                  onPressed: () {
-                    showMeaning ? print('oh no') : processWithIncorrect();
-                    setState(() {
-                      showMeaning = !showMeaning;
-                    });
-                  },
-                  child: Text(
-                    showMeaning ? 'Hide Meaning' : 'Show Meaning',
-                    style: TextStyle(
-                        color: googleButtonText,
-                        letterSpacing: 1,
-                        fontSize: 16),
-                  ))
+                onPressed: () {
+                  showMeaning ? print('oh no') : processWithIncorrect();
+                  setState(() {
+                    showMeaning = !showMeaning;
+                  });
+                },
+                child: showMeaning
+                    ? renderText('Hide Meaning', 16.0, FontWeight.normal)
+                    : renderText('Show Meaning', 16.0, FontWeight.normal),
+              ),
             ],
           ),
         ),
@@ -212,16 +120,75 @@ class _RandomWordState extends State<RandomWord> {
     );
   }
 
-  showToastMessage(message) {
-    Fluttertoast.showToast(
-        msg: message,
-        toastLength: Toast.LENGTH_SHORT,
-        gravity: ToastGravity.CENTER,
-        backgroundColor: googleButtonBg,
-        textColor: googleButtonTextLight,
-        fontSize: 16.0);
+//method to get SizedBox()
+  SizedBox getSizedBox(double hightValue, double widthValue) {
+    return SizedBox(
+      height: hightValue,
+      width: widthValue,
+    );
   }
 
+// widget to render text
+  Text renderText(message, double size, textWeight) {
+    return Text(
+      message,
+      style: TextStyle(
+          color: googleButtonText,
+          letterSpacing: 1,
+          fontSize: size,
+          fontWeight: textWeight),
+    );
+  }
+
+//widget to render FAB
+  Widget renderFloatingActionButton(type, fabIcon, value) {
+    return Column(
+      children: [
+        getFAB(type, fabIcon),
+        getSizedBox(5.0, 0.0),
+        renderText('$value', 20.0, FontWeight.normal),
+      ],
+    );
+  }
+
+// generate fab button()
+  FloatingActionButton getFAB(type, fabIcon) {
+    return FloatingActionButton(
+      elevation: 2,
+      heroTag: '$type',
+      onPressed: () {
+        fabButtonPress(type);
+      },
+      backgroundColor: googleButtonBg,
+      splashColor: googleButtonBg,
+      child: Icon(
+        fabIcon,
+        color: googleButtonText,
+      ),
+    );
+  }
+
+  // process count update
+  fabButtonPress(type) {
+    switch (type) {
+      case 'correct':
+        setState(() {
+          showMeaning = false;
+        });
+        updateCount('$type');
+        fetchDetails();
+        showToastMessage(getShortCorrectMessage());
+        break;
+      case 'incorrect':
+        fetchDetails();
+        break;
+      case 'tts':
+        playWord.speak(_word);
+        break;
+    }
+  }
+
+// get random word from local db
   fetchDetails() {
     dbHelper.getRandomData().then((value) {
       if (value.word == _word)
@@ -238,6 +205,7 @@ class _RandomWordState extends State<RandomWord> {
     });
   }
 
+// increase incorrect count & update it on local db
   processWithIncorrect() {
     setState(() {
       _incorrect = _incorrect + 1;
@@ -246,6 +214,7 @@ class _RandomWordState extends State<RandomWord> {
     showToastMessage(getDontTapMeText(userName));
   }
 
+// update the in/correct count locally
   updateCount(String type) {
     if (type == 'correct') {
       Words updatedWord = wordObject;
@@ -256,5 +225,16 @@ class _RandomWordState extends State<RandomWord> {
       updatedWord.incorrect = _incorrect + 1;
       dbHelper.updateWord(updatedWord);
     }
+  }
+
+// method to show toast message
+  showToastMessage(message) {
+    Fluttertoast.showToast(
+        msg: message,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.CENTER,
+        backgroundColor: googleButtonBg,
+        textColor: googleButtonTextLight,
+        fontSize: 16.0);
   }
 }

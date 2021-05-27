@@ -50,196 +50,198 @@ class _RandomSentenceState extends State<RandomSentence> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: primaryColor,
-      appBar: AppBar(
-        iconTheme: IconThemeData(
-          color: googleButtonTextLight,
-        ),
+    return GestureDetector(
+      onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+      child: Scaffold(
         backgroundColor: primaryColor,
-        elevation: 0,
-        title: Text(
-          'Test By Meaning',
-          style: TextStyle(color: googleButtonTextLight, letterSpacing: 1.5),
+        appBar: AppBar(
+          iconTheme: IconThemeData(
+            color: googleButtonTextLight,
+          ),
+          backgroundColor: primaryColor,
+          elevation: 0,
+          title: Text(
+            'Test By Meaning',
+            style: TextStyle(color: googleButtonTextLight, letterSpacing: 1.5),
+          ),
+          centerTitle: true,
         ),
-        centerTitle: true,
-      ),
-      body: (SingleChildScrollView(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(24, 32, 24, 16),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '$_meaning',
-                      style: TextStyle(
+        body: (SingleChildScrollView(
+          child: Padding(
+            padding: EdgeInsets.fromLTRB(24, 32, 24, 16),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '$_meaning',
+                        style: TextStyle(
                           color: googleButtonText,
                           fontSize: 25,
-                          fontWeight: FontWeight.bold),
-                    ),
-                  ),
-                ],
-              ),
-              SizedBox(
-                height: 50,
-              ),
-              SizedBox(
-                height: 150,
-              ),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Row(
-                    children: [
-                      Column(
-                        children: [
-                          FloatingActionButton(
-                            heroTag: "thumbs_up",
-                            onPressed: () {
-                              showToastMessage(
-                                  'You have answered ${_word.toUpperCase()} correctly $_correct times.');
-                            },
-                            backgroundColor: googleButtonBg,
-                            splashColor: googleButtonBg,
-                            child: Icon(
-                              Icons.thumb_up_alt,
-                              color: googleButtonText,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            '$_correct',
-                            style: TextStyle(
-                                color: googleButtonText,
-                                letterSpacing: 1,
-                                fontSize: 20),
-                          )
-                        ],
+                        ),
                       ),
-                      SizedBox(
-                        width: 10,
-                      ),
-                      Column(
-                        children: [
-                          FloatingActionButton(
-                            heroTag: "thumbs_down",
-                            onPressed: () {
-                              showToastMessage(
-                                  'You have answered ${_word.toUpperCase()} incorrectly $_incorrect times.');
-                            },
-                            backgroundColor: googleButtonBg,
-                            splashColor: googleButtonBg,
-                            child: Icon(
-                              Icons.thumb_down_alt,
-                              color: googleButtonText,
-                            ),
-                          ),
-                          SizedBox(
-                            height: 5,
-                          ),
-                          Text(
-                            '$_incorrect',
-                            style: TextStyle(
-                                color: googleButtonText,
-                                letterSpacing: 1,
-                                fontSize: 20),
-                          )
-                        ],
-                      ),
-                    ],
-                  )
-                ],
-              ),
-              SizedBox(
-                height: 75,
-              ),
-              TextFormField(
-                focusNode: _focusNode,
-                onChanged: (text) {
-                  if (text.isEmpty)
-                    setState(() {
-                      isTextEmpty = true;
-                    });
-                  else
-                    setState(() {
-                      isTextEmpty = false;
-                    });
-                },
-                onFieldSubmitted: (term) {
-                  _validateText // is validate is already pressed
-                      ? print('validating')
-                      : processWithValidation();
-                },
-                keyboardType: TextInputType.emailAddress,
-                controller: _controllerWord,
-                textInputAction: TextInputAction.done,
-                style: TextStyle(color: googleButtonText, letterSpacing: 1),
-                cursorColor: googleButtonTextLight,
-                decoration: InputDecoration(
-                    enabledBorder: OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: googleButtonTextLight, width: 1.0),
                     ),
-                    focusedBorder: new OutlineInputBorder(
-                      borderSide:
-                          BorderSide(color: googleButtonText, width: 1.5),
-                    ),
-                    border: const OutlineInputBorder(),
-                    labelStyle: new TextStyle(
-                        color: googleButtonText, letterSpacing: 1.5),
-                    labelText: 'Word'),
-              ),
-              SizedBox(
-                height: 100,
-              ),
-              SizedBox(
-                height: 50,
-                child: Card(
-                  elevation: 0,
-                  color: _validateText ? googleButtonTextLight : googleButtonBg,
-                  child: InkWell(
-                      splashColor: googleButtonBg,
-                      onTap: () {
-                        FocusScope.of(context).unfocus();
-                        _validateText // is validate is already pressed
-                            ? print('validating')
-                            : processWithValidation();
-                      },
-                      child: Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Text(
-                            isTextEmpty ? 'Give up' : 'Validate',
-                            textAlign: TextAlign.center,
-                            style: TextStyle(
-                                color: googleButtonText,
-                                letterSpacing: 1.5,
-                                fontSize: 18),
-                          ),
-                        ],
-                      )),
+                  ],
                 ),
-              ),
-            ],
+                getSizedBox(100.0, 0.0),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Row(children: [
+                      renderFloatingActionButton(
+                          'correct', Icons.thumb_up_alt, '$_correct'),
+                      getSizedBox(0.0, 10.0),
+                      renderFloatingActionButton(
+                          'incorrect', Icons.thumb_down_alt, '$_incorrect'),
+                    ])
+                  ],
+                ),
+                getSizedBox(50.0, 0.0),
+                TextFormField(
+                  focusNode: _focusNode,
+                  onChanged: (text) {
+                    if (text.isEmpty)
+                      setState(() {
+                        isTextEmpty = true;
+                      });
+                    else
+                      setState(() {
+                        isTextEmpty = false;
+                      });
+                  },
+                  onFieldSubmitted: (term) {
+                    _validateText // is validate is already pressed
+                        ? print('validating')
+                        : processWithValidation();
+                  },
+                  keyboardType: TextInputType.emailAddress,
+                  controller: _controllerWord,
+                  textInputAction: TextInputAction.done,
+                  style: TextStyle(color: googleButtonText, letterSpacing: 1),
+                  cursorColor: googleButtonTextLight,
+                  decoration: InputDecoration(
+                      enabledBorder: OutlineInputBorder(
+                        borderSide: BorderSide(
+                            color: googleButtonTextLight, width: 1.0),
+                      ),
+                      focusedBorder: new OutlineInputBorder(
+                        borderSide:
+                            BorderSide(color: googleButtonText, width: 1.5),
+                      ),
+                      border: const OutlineInputBorder(),
+                      labelStyle: new TextStyle(
+                          color: googleButtonText, letterSpacing: 1.5),
+                      labelText: 'Word'),
+                ),
+                getSizedBox(50.0, 0.0),
+                SizedBox(
+                  height: 50,
+                  child: Card(
+                    elevation: 2,
+                    color:
+                        _validateText ? googleButtonTextLight : googleButtonBg,
+                    child: InkWell(
+                        splashColor: googleButtonBg,
+                        onTap: () {
+                          FocusScope.of(context).unfocus();
+                          _validateText // is validate is already pressed
+                              ? print('validating')
+                              : processWithValidation();
+                        },
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              isTextEmpty ? 'Give up' : 'Validate',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                  color: googleButtonText,
+                                  letterSpacing: 1.5,
+                                  fontSize: 18),
+                            ),
+                          ],
+                        )),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      )),
+        )),
+      ),
     );
+  }
+
+//method to get SizedBox()
+  SizedBox getSizedBox(double hightValue, double widthValue) {
+    return SizedBox(
+      height: hightValue,
+      width: widthValue,
+    );
+  }
+
+  // widget to render text
+  Text renderText(message, double size, textWeight) {
+    return Text(
+      message,
+      style: TextStyle(
+          color: googleButtonText,
+          letterSpacing: 1,
+          fontSize: size,
+          fontWeight: textWeight),
+    );
+  }
+
+  Widget renderFloatingActionButton(type, fabIcon, value) {
+    return Column(
+      children: [
+        getFAB(type, fabIcon, value),
+        getSizedBox(5.0, 0.0),
+        renderText('$value', 20.0, FontWeight.normal),
+      ],
+    );
+  }
+
+// generate fab button()
+  FloatingActionButton getFAB(type, fabIcon, value) {
+    return FloatingActionButton(
+      elevation: 2,
+      heroTag: '$type',
+      onPressed: () {
+        fabButtonPress(type, value);
+      },
+      backgroundColor: googleButtonBg,
+      splashColor: googleButtonBg,
+      child: Icon(
+        fabIcon,
+        color: googleButtonText,
+      ),
+    );
+  }
+
+  // process count update
+  fabButtonPress(type, value) {
+    switch (type) {
+      case 'correct':
+        showToastMessage(
+            'You have answered ${_word.toUpperCase()} correctly $value times.');
+        break;
+      case 'incorrect':
+        showToastMessage(
+            'You have answered ${_word.toUpperCase()} incorrectly $value times.');
+        break;
+    }
   }
 
   validateInput() {
     if (_word == _controllerWord.text) {
       updateCount('correct');
-      showToastMessage(getCorrectMessage(userName));
       _controllerWord.text = '';
       fetchDetails();
+      showToastMessage(getCorrectMessage(userName));
     } else {
       updateCount('incorrect');
       setState(() {
