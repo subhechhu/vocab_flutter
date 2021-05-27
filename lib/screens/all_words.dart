@@ -16,17 +16,22 @@ class _AllWordsState extends State<AllWords> {
   DbHelper dbHelper = DbHelper();
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
+  TextEditingController _textController = TextEditingController();
   List<Words> wordList;
+  List<Words> newWordList;
+  FocusNode _focusNode;
   int listSize = 0;
   String _userId = '';
   bool _shouldRefresh = false;
   bool _shouldDelete = false;
   bool _isSnackbarActive = false;
+  bool _isSearching = false;
 
   @override
   void initState() {
     super.initState();
     playWord.initTTS();
+    _focusNode = FocusNode();
     _prefs.then((SharedPreferences prefs) {
       _userId = prefs.getString('userId') ?? '';
       print('userID: $_userId');
@@ -37,6 +42,7 @@ class _AllWordsState extends State<AllWords> {
   @override
   void dispose() {
     playWord.stopTTS();
+    _focusNode.dispose();
     super.dispose();
   }
 
@@ -45,10 +51,47 @@ class _AllWordsState extends State<AllWords> {
     return Scaffold(
       backgroundColor: primaryColor,
       appBar: AppBar(
-        title: Text(
-          'All Words',
-          style: TextStyle(color: googleButtonTextLight, letterSpacing: 1.5),
-        ),
+        automaticallyImplyLeading: _isSearching ? false : true,
+        actions: [
+          Tooltip(
+            message: 'Search Words',
+            child: IconButton(
+              icon: Icon(_isSearching ? Icons.close : Icons.search),
+              onPressed: () {
+                setState(() {
+                  _isSearching = !_isSearching;
+                });
+              },
+              color: googleButtonTextLight,
+            ),
+          )
+        ],
+        title: !_isSearching
+            ? Text(
+                'All Words',
+                style:
+                    TextStyle(color: googleButtonTextLight, letterSpacing: 1.5),
+              )
+            : TextField(
+                autofocus: true,
+                controller: _textController,
+                style: TextStyle(color: googleButtonText, letterSpacing: 1.5),
+                cursorColor: googleButtonText,
+                decoration: InputDecoration(
+                    enabledBorder: OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: googleButtonTextLight, width: 1.0),
+                    ),
+                    focusedBorder: new OutlineInputBorder(
+                      borderSide:
+                          BorderSide(color: googleButtonText, width: 1.5),
+                    ),
+                    border: const OutlineInputBorder(),
+                    labelStyle: new TextStyle(
+                        color: googleButtonText, letterSpacing: 1.5),
+                    labelText: 'Search Word'),
+                onChanged: onItemChanged,
+              ),
         iconTheme: IconThemeData(
           color: googleButtonTextLight,
         ),
@@ -58,11 +101,18 @@ class _AllWordsState extends State<AllWords> {
       ),
       body: WillPopScope(
         onWillPop: () async {
-          if (_isSnackbarActive) {
-            ScaffoldMessenger.of(context).hideCurrentSnackBar();
-            _shouldRefresh = true;
+          if (_isSearching) {
+            setState(() {
+              _isSearching = false;
+              newWordList = wordList;
+            });
+          } else {
+            if (_isSnackbarActive) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              _shouldRefresh = true;
+            }
+            Navigator.pop(context, {'shouldRefresh': _shouldRefresh});
           }
-          Navigator.pop(context, {'shouldRefresh': _shouldRefresh});
           return false;
         },
         child: Column(
@@ -71,9 +121,9 @@ class _AllWordsState extends State<AllWords> {
             listSize > 0
                 ? Expanded(
                     child: ListView.builder(
-                      itemCount: wordList.length,
+                      itemCount: newWordList.length,
                       itemBuilder: (context, index) {
-                        final word = wordList[index];
+                        final word = newWordList[index];
                         return Dismissible(
                           key: Key(word.word),
                           // Provide a function that tells the app
@@ -82,7 +132,8 @@ class _AllWordsState extends State<AllWords> {
                             _shouldDelete = true;
                             // Remove the item from the data source.
                             setState(() {
-                              wordList.removeAt(index);
+                              newWordList.removeAt(index);
+                              wordList.remove(index);
                             });
                             _isSnackbarActive = true;
                             ScaffoldMessenger.of(context)
@@ -114,6 +165,7 @@ class _AllWordsState extends State<AllWords> {
                                       _isSnackbarActive = false;
                                       _shouldDelete = false;
                                       setState(() {
+                                        newWordList.insert(index, word);
                                         wordList.insert(index, word);
                                       });
                                     },
@@ -122,7 +174,6 @@ class _AllWordsState extends State<AllWords> {
                                 .closed
                                 .then((SnackBarClosedReason reason) {
                               _isSnackbarActive = false;
-                              print('should delete? $_shouldDelete');
                               if (_shouldDelete) {
                                 dbHelper
                                     .deleteWord(word.word)
@@ -142,14 +193,14 @@ class _AllWordsState extends State<AllWords> {
                             child: InkWell(
                                 splashColor: googleButtonBg,
                                 onLongPress: () {
-                                  playWord.speak(wordList[index].word);
+                                  playWord.speak(newWordList[index].word);
                                 },
                                 onTap: () async {
                                   dynamic result = await Navigator.pushNamed(
                                       context, '/add',
                                       arguments: {
                                         'action': 'Modify Word',
-                                        'word': wordList[index],
+                                        'word': newWordList[index],
                                         'userId': _userId,
                                       });
                                   _shouldRefresh = result['shouldRefresh'];
@@ -168,7 +219,7 @@ class _AllWordsState extends State<AllWords> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            '${wordList[index].word}',
+                                            '${newWordList[index].word}',
                                             style: TextStyle(
                                                 color: googleButtonText,
                                                 letterSpacing: 1,
@@ -187,7 +238,7 @@ class _AllWordsState extends State<AllWords> {
                                                     height: 2,
                                                   ),
                                                   Text(
-                                                    '${wordList[index].correct}',
+                                                    '${newWordList[index].correct}',
                                                     style: TextStyle(
                                                         color: googleButtonText,
                                                         letterSpacing: 1,
@@ -209,7 +260,7 @@ class _AllWordsState extends State<AllWords> {
                                                     height: 2,
                                                   ),
                                                   Text(
-                                                    '${wordList[index].incorrect}',
+                                                    '${newWordList[index].incorrect}',
                                                     style: TextStyle(
                                                         color: googleButtonText,
                                                         letterSpacing: 1,
@@ -222,7 +273,7 @@ class _AllWordsState extends State<AllWords> {
                                         ],
                                       ),
                                       Text(
-                                        '${wordList[index].pronunciation}',
+                                        '${newWordList[index].pronunciation}',
                                         style: TextStyle(
                                             color: googleButtonText,
                                             letterSpacing: 1,
@@ -232,7 +283,7 @@ class _AllWordsState extends State<AllWords> {
                                         height: 15,
                                       ),
                                       Text(
-                                        wordList[index].meaning,
+                                        newWordList[index].meaning,
                                         style: TextStyle(
                                             color: googleButtonText,
                                             letterSpacing: 1,
@@ -273,6 +324,15 @@ class _AllWordsState extends State<AllWords> {
     );
   }
 
+  onItemChanged(String value) {
+    setState(() {
+      newWordList = wordList
+          .where(
+              (words) => words.word.toLowerCase().contains(value.toLowerCase()))
+          .toList();
+    });
+  }
+
   getSharedPreference() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     _userId = prefs.getString('userId') ?? '';
@@ -284,6 +344,7 @@ class _AllWordsState extends State<AllWords> {
       setState(() {
         wordList = value;
         listSize = value.length;
+        newWordList = value;
       });
     });
   }

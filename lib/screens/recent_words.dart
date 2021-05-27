@@ -177,7 +177,7 @@ class _RecentWordsState extends State<RecentWords> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            '${wordList[index].word}',
+                                            '${wordList[index].word} (${wordList[index].pronunciation})',
                                             style: TextStyle(
                                                 color: googleButtonText,
                                                 letterSpacing: 1,
@@ -229,13 +229,6 @@ class _RecentWordsState extends State<RecentWords> {
                                             ],
                                           )
                                         ],
-                                      ),
-                                      Text(
-                                        '${wordList[index].pronunciation}',
-                                        style: TextStyle(
-                                            color: googleButtonText,
-                                            letterSpacing: 1,
-                                            fontSize: 16),
                                       ),
                                       SizedBox(
                                         height: 15,
