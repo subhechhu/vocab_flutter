@@ -5,7 +5,6 @@ THIS PROJECT IS JUST TO LEARN FLUTTER.
 
 
 I created the app for me with my requirement.
-![sc1](https://user-images.githubusercontent.com/13517085/119942716-e494b680-bfb1-11eb-8d23-5d1d0e7fc972.jpeg)
 
 Please go soft on that
 
