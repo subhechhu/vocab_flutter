@@ -237,7 +237,7 @@ class _RandomSentenceState extends State<RandomSentence> {
   }
 
   validateInput() {
-    if (_word == _controllerWord.text) {
+    if (_word.toLowerCase() == _controllerWord.text.toLowerCase()) {
       updateCount('correct');
       _controllerWord.text = '';
       fetchDetails();
@@ -267,7 +267,7 @@ class _RandomSentenceState extends State<RandomSentence> {
       duration: Duration(hours: 24),
       shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(10))),
-      backgroundColor: googleButtonBg,
+      backgroundColor: snackbarColor,
       action: SnackBarAction(
         textColor: error,
         label: "Get It",

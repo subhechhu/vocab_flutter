@@ -59,7 +59,18 @@ class _AllWordsState extends State<AllWords> {
               icon: Icon(_isSearching ? Icons.close : Icons.search),
               onPressed: () {
                 setState(() {
-                  _isSearching = !_isSearching;
+                  if (_isSearching) {
+                    setState(() {
+                      _textController.text = '';
+                      _isSearching = !_isSearching;
+                      newWordList = wordList;
+                    });
+                  } else {
+                    setState(() {
+                      _textController.text = '';
+                      _isSearching = !_isSearching;
+                    });
+                  }
                 });
               },
               color: googleButtonTextLight,
@@ -160,7 +171,7 @@ class _AllWordsState extends State<AllWords> {
                                   shape: RoundedRectangleBorder(
                                       borderRadius:
                                           BorderRadius.all(Radius.circular(5))),
-                                  backgroundColor: googleButtonBg,
+                                  backgroundColor: snackbarColor,
                                   action: SnackBarAction(
                                     textColor: error,
                                     label: "UNDO",
@@ -223,7 +234,7 @@ class _AllWordsState extends State<AllWords> {
                                             MainAxisAlignment.spaceBetween,
                                         children: [
                                           Text(
-                                            '${newWordList[index].word}',
+                                            '${newWordList[index].word} (${newWordList[index].pronunciation}),',
                                             style: TextStyle(
                                                 color: googleButtonText,
                                                 letterSpacing: 1,
@@ -276,13 +287,6 @@ class _AllWordsState extends State<AllWords> {
                                           )
                                         ],
                                       ),
-                                      Text(
-                                        '${newWordList[index].pronunciation}',
-                                        style: TextStyle(
-                                            color: googleButtonText,
-                                            letterSpacing: 1,
-                                            fontSize: 16),
-                                      ),
                                       SizedBox(
                                         height: 15,
                                       ),
@@ -330,10 +334,11 @@ class _AllWordsState extends State<AllWords> {
 
   onItemChanged(String value) {
     setState(() {
-      newWordList = wordList
-          .where(
-              (words) => words.word.toLowerCase().contains(value.toLowerCase()))
-          .toList();
+      newWordList = wordList.where((Words words) {
+        return words.word.toLowerCase().contains(value.toLowerCase()) ||
+            words.meaning.toLowerCase().contains(value.toLowerCase()) ||
+            words.sentence.toLowerCase().contains(value.toLowerCase());
+      }).toList();
     });
   }
 

@@ -180,6 +180,9 @@ class _RandomWordState extends State<RandomWord> {
         showToastMessage(getShortCorrectMessage());
         break;
       case 'incorrect':
+        setState(() {
+          showMeaning = false;
+        });
         fetchDetails();
         break;
       case 'tts':
