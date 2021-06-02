@@ -6,8 +6,8 @@ class PlayWord {
   FlutterTts _flutterTts;
   String _language = 'en-US';
   double _volume = 0.8;
-  double _pitch = 1.0;
-  double _rate = 0.2;
+  double _pitch = 0.9;
+  double _rate = 0.6;
 
   TtsState ttsState = TtsState.stopped;
 

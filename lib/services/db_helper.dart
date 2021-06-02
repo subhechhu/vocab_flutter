@@ -1,5 +1,6 @@
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
+import 'package:vocab/services/IdomModel.dart';
 import 'package:vocab/services/words.dart';
 
 class DbHelper {
@@ -9,12 +10,13 @@ class DbHelper {
     if (_database == null) {
       _database = openDatabase(
         join(await getDatabasesPath(), 'vocab_database.db'),
-        onCreate: (db, version) {
-          return db.execute(
-            'CREATE TABLE words (correct INTEGER DEFAULT 0, incorrect INTEGER DEFAULT 0, word TEXT UNIQUE, pronunciation TEXT, meaning TEXT, sentence TEXT, time INTEGER DEFAULT 0)',
-          );
+        onCreate: (db, version) async {
+          await db.execute(
+              'CREATE TABLE words (correct INTEGER DEFAULT 0, incorrect INTEGER DEFAULT 0, word TEXT UNIQUE, pronunciation TEXT, meaning TEXT, sentence TEXT, time INTEGER DEFAULT 0)');
+          await db.execute(
+              'CREATE TABLE idoms (ID INTEGER PRIMARY KEY AUTOINCREMENT, word TEXT UNIQUE, meaning TEXT, sentence TEXT, time INTEGER DEFAULT 0)');
         },
-        version: 3,
+        version: 4,
       );
     }
     return _database;
@@ -39,10 +41,17 @@ class DbHelper {
     return insert;
   }
 
-  Future<List<Words>> getAllWords() async {
+  Future<List<Words>> getAllWords(order) async {
+    String orderText;
+
+    if (order) {
+      orderText = 'word';
+    } else {
+      orderText = 'word DESC';
+    }
     final db = await _database;
     final List<Map<String, dynamic>> maps =
-        await db.query('words', orderBy: 'word');
+        await db.query('words', orderBy: '$orderText');
     return List.generate(maps.length, (i) {
       return Words(
           word: maps[i]['word'],
@@ -55,10 +64,10 @@ class DbHelper {
     });
   }
 
-  Future<List<Words>> getRecentWords(int count) async {
+  Future<List<Words>> getRecentWords(int count, type) async {
     final db = await _database;
     final List<Map<String, dynamic>> maps =
-        await db.query('words', limit: count, orderBy: 'time DESC');
+        await db.query('words', limit: count, orderBy: '$type');
     return List.generate(maps.length, (i) {
       return Words(
           word: maps[i]['word'],
@@ -107,5 +116,59 @@ class DbHelper {
           time: maps[0]['time']);
     }
     return null;
+  }
+
+  Future<int> insertIdom(IdomModel idoms) async {
+    final db = await _database;
+    print(db.isOpen);
+    print(db.path);
+    int insert = await db.insert(
+      'idoms', //table
+      idoms.toMap(), //data to insert
+      conflictAlgorithm:
+          ConflictAlgorithm.replace, // replace if Primary key reoccurs
+    );
+    print('insert data: $insert');
+    return insert;
+  }
+
+  Future<List<IdomModel>> getAllIdoms(order) async {
+    String q = '';
+    if (order) {
+      q = 'SELECT * FROM idoms ORDER BY RANDOM()';
+    } else {
+      q = 'SELECT * FROM idoms ORDER BY word';
+    }
+    final db = await _database;
+    final List<Map<String, dynamic>> maps = await db.rawQuery('$q');
+    return List.generate(maps.length, (i) {
+      return IdomModel(
+          word: maps[i]['word'],
+          meaning: maps[i]['meaning'],
+          sentence: maps[i]['sentence'],
+          id: maps[i]['id'],
+          time: maps[i]['time']);
+    });
+  }
+
+  Future<int> updateIdom(IdomModel idoms) async {
+    final db = await _database;
+    int update = await db.update(
+      'idoms',
+      idoms.toMap(),
+      where: 'id = ?',
+      whereArgs: [idoms.id],
+    );
+    return update;
+  }
+
+  Future<int> deleteIdom(id) async {
+    final db = await _database;
+    int delete = await db.delete(
+      'idoms',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    return delete;
   }
 }

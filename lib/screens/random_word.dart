@@ -22,6 +22,8 @@ class _RandomWordState extends State<RandomWord> {
   String _meaning = '';
   int _correct = 0;
   int _incorrect = 0;
+  bool showWord = true;
+  bool initShowWord;
   bool showMeaning = false;
   String userName = '';
   Words wordObject;
@@ -30,11 +32,12 @@ class _RandomWordState extends State<RandomWord> {
   void initState() {
     super.initState();
     playWord.initTTS();
-    dbHelper.getDbInstance().then((value) => fetchDetails());
     _prefs.then((SharedPreferences prefs) {
       var str = prefs.getString('displayName' ?? '');
       var parts = str.split(':');
       userName = parts[0].trim();
+      initShowWord = showWord = prefs.getBool('showWord');
+      dbHelper.getDbInstance().then((value) => fetchDetails());
     });
   }
 
@@ -42,12 +45,21 @@ class _RandomWordState extends State<RandomWord> {
   void dispose() {
     playWord.stopTTS();
     super.dispose();
+    if (showWord != initShowWord) {
+      _prefs.then((SharedPreferences prefs) {
+        prefs.setBool('showWord', showWord);
+      });
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: primaryColor,
+      floatingActionButton: getFAB(
+        'show word',
+        showWord ? Icons.visibility_off : Icons.visibility,
+      ),
       appBar: AppBar(
         iconTheme: IconThemeData(
           color: googleButtonTextLight,
@@ -70,7 +82,7 @@ class _RandomWordState extends State<RandomWord> {
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  renderText('$_word', 30.0, FontWeight.bold),
+                  renderText(showWord ? '$_word' : '', 30.0, FontWeight.bold),
                 ],
               ),
               getSizedBox(100.0, 0.0),
@@ -188,6 +200,13 @@ class _RandomWordState extends State<RandomWord> {
       case 'tts':
         playWord.speak(_word);
         break;
+      case 'show word':
+        setState(() {
+          showWord = !showWord;
+        });
+        if (!showWord) {
+          playWord.speak(_word);
+        }
     }
   }
 
@@ -204,6 +223,9 @@ class _RandomWordState extends State<RandomWord> {
           _correct = value.correct;
           _incorrect = value.incorrect;
         });
+        if (!showWord) {
+          playWord.speak(_word);
+        }
       }
     });
   }

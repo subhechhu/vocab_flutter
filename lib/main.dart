@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:vocab/screens/add_words.dart';
 import 'package:vocab/screens/all_words.dart';
 import 'package:vocab/screens/home.dart';
+import 'package:vocab/screens/idoms.dart';
 import 'package:vocab/screens/login.dart';
 import 'package:vocab/screens/random_sentence.dart';
 import 'package:vocab/screens/random_word.dart';
@@ -21,6 +22,7 @@ void main() async {
         '/view_all': (context) => AllWords(),
         '/view_recent': (context) => RecentWords(),
         '/random_word': (context) => RandomWord(),
-        '/random_sentence': (context) => RandomSentence()
+        '/random_sentence': (context) => RandomSentence(),
+        '/idoms': (context) => Idoms()
       }));
 }

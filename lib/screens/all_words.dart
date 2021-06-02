@@ -26,6 +26,7 @@ class _AllWordsState extends State<AllWords> {
   bool _shouldDelete = false;
   bool _isSnackbarActive = false;
   bool _isSearching = false;
+  bool isAscending = true;
 
   @override
   void initState() {
@@ -35,7 +36,7 @@ class _AllWordsState extends State<AllWords> {
     _prefs.then((SharedPreferences prefs) {
       _userId = prefs.getString('userId') ?? '';
       print('userID: $_userId');
-      dbHelper.getDbInstance().then((value) => fetchAllWords());
+      dbHelper.getDbInstance().then((value) => fetchAllWords(isAscending));
     });
   }
 
@@ -43,12 +44,29 @@ class _AllWordsState extends State<AllWords> {
   void dispose() {
     playWord.stopTTS();
     _focusNode.dispose();
+    _textController.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      floatingActionButton: FloatingActionButton(
+        elevation: 10,
+        heroTag: 'sort',
+        onPressed: () {
+          setState(() {
+            isAscending = !isAscending;
+          });
+          fetchAllWords(isAscending);
+        },
+        backgroundColor: fabButton,
+        splashColor: googleButtonBg,
+        child: Icon(
+          !isAscending ? Icons.close_sharp : Icons.sort_by_alpha,
+          color: googleButtonText,
+        ),
+      ),
       backgroundColor: primaryColor,
       appBar: AppBar(
         automaticallyImplyLeading: _isSearching ? false : true,
@@ -137,185 +155,119 @@ class _AllWordsState extends State<AllWords> {
                     child: ListView.builder(
                       itemCount: newWordList.length,
                       itemBuilder: (context, index) {
-                        final word = newWordList[index];
-                        return Dismissible(
-                          key: Key(word.word),
-                          // Provide a function that tells the app
-                          // what to do after an item has been swiped away.
-                          onDismissed: (direction) {
-                            _shouldDelete = true;
-                            // Remove the item from the data source.
-                            setState(() {
-                              newWordList.removeAt(index);
-                              wordList.remove(index);
-                            });
-                            _isSnackbarActive = true;
-                            ScaffoldMessenger.of(context)
-                                .showSnackBar(SnackBar(
-                                  content: WillPopScope(
-                                    onWillPop: () async {
-                                      ScaffoldMessenger.of(context)
-                                          .removeCurrentSnackBar();
-                                      return true;
-                                    },
-                                    child: Text(
-                                      'Details for ${word.word.toUpperCase()} deleted',
-                                      style: TextStyle(
-                                          letterSpacing: 1,
-                                          color: googleButtonText),
+                        return Card(
+                          elevation: 0,
+                          color: primaryColor,
+                          child: InkWell(
+                              splashColor: googleButtonBg,
+                              onLongPress: () {
+                                playWord.speak(newWordList[index].word);
+                              },
+                              onTap: () async {
+                                dynamic result = await Navigator.pushNamed(
+                                    context, '/add',
+                                    arguments: {
+                                      'action': 'Modify Word',
+                                      'word': newWordList[index],
+                                      'userId': _userId,
+                                    });
+                                _shouldRefresh = result['shouldRefresh'];
+                                if (_shouldRefresh) {
+                                  fetchAllWords(isAscending);
+                                }
+                              },
+                              child: Padding(
+                                padding: const EdgeInsets.all(20),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceBetween,
+                                      children: [
+                                        Text(
+                                          '${newWordList[index].word} (${newWordList[index].pronunciation})',
+                                          style: TextStyle(
+                                              color: googleButtonText,
+                                              letterSpacing: 1,
+                                              fontSize: 16,
+                                              fontWeight: FontWeight.bold),
+                                        ),
+                                        Row(
+                                          children: [
+                                            Column(
+                                              children: [
+                                                Icon(
+                                                  Icons.thumb_up,
+                                                  color: googleButtonText,
+                                                  size: 15,
+                                                ),
+                                                SizedBox(
+                                                  height: 2,
+                                                ),
+                                                Text(
+                                                  '${newWordList[index].correct}',
+                                                  style: TextStyle(
+                                                      color: googleButtonText,
+                                                      letterSpacing: 1,
+                                                      fontSize: 14),
+                                                )
+                                              ],
+                                            ),
+                                            SizedBox(
+                                              width: 5,
+                                            ),
+                                            Column(
+                                              children: [
+                                                Icon(
+                                                  Icons.thumb_down,
+                                                  color: googleButtonText,
+                                                  size: 15,
+                                                ),
+                                                SizedBox(
+                                                  height: 2,
+                                                ),
+                                                Text(
+                                                  '${newWordList[index].incorrect}',
+                                                  style: TextStyle(
+                                                      color: googleButtonText,
+                                                      letterSpacing: 1,
+                                                      fontSize: 14),
+                                                )
+                                              ],
+                                            ),
+                                          ],
+                                        )
+                                      ],
                                     ),
-                                  ),
-                                  margin: EdgeInsets.all(20),
-                                  behavior: SnackBarBehavior.floating,
-                                  duration: Duration(seconds: 3),
-                                  shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.all(Radius.circular(5))),
-                                  backgroundColor: snackbarColor,
-                                  action: SnackBarAction(
-                                    textColor: error,
-                                    label: "UNDO",
-                                    onPressed: () {
-                                      _isSnackbarActive = false;
-                                      _shouldDelete = false;
-                                      setState(() {
-                                        newWordList.insert(index, word);
-                                        wordList.insert(index, word);
-                                      });
-                                    },
-                                  ),
-                                ))
-                                .closed
-                                .then((SnackBarClosedReason reason) {
-                              _isSnackbarActive = false;
-                              if (_shouldDelete) {
-                                dbHelper
-                                    .deleteWord(word.word)
-                                    .then((int value) {
-                                  firestore
-                                      .collection(_userId)
-                                      .doc(word.word)
-                                      .delete()
-                                      .then((value) => _shouldRefresh = true);
-                                });
-                              }
-                            });
-                          },
-                          background: Container(color: error),
-                          child: Card(
-                            elevation: 0,
-                            color: primaryColor,
-                            child: InkWell(
-                                splashColor: googleButtonBg,
-                                onLongPress: () {
-                                  playWord.speak(newWordList[index].word);
-                                },
-                                onTap: () async {
-                                  dynamic result = await Navigator.pushNamed(
-                                      context, '/add',
-                                      arguments: {
-                                        'action': 'Modify Word',
-                                        'word': newWordList[index],
-                                        'userId': _userId,
-                                      });
-                                  _shouldRefresh = result['shouldRefresh'];
-                                  if (_shouldRefresh) {
-                                    fetchAllWords();
-                                  }
-                                },
-                                child: Padding(
-                                  padding: const EdgeInsets.all(20),
-                                  child: Column(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.spaceBetween,
-                                        children: [
-                                          Text(
-                                            '${newWordList[index].word} (${newWordList[index].pronunciation}),',
-                                            style: TextStyle(
-                                                color: googleButtonText,
-                                                letterSpacing: 1,
-                                                fontSize: 16),
-                                          ),
-                                          Row(
-                                            children: [
-                                              Column(
-                                                children: [
-                                                  Icon(
-                                                    Icons.thumb_up,
-                                                    color: googleButtonText,
-                                                    size: 15,
-                                                  ),
-                                                  SizedBox(
-                                                    height: 2,
-                                                  ),
-                                                  Text(
-                                                    '${newWordList[index].correct}',
-                                                    style: TextStyle(
-                                                        color: googleButtonText,
-                                                        letterSpacing: 1,
-                                                        fontSize: 14),
-                                                  )
-                                                ],
-                                              ),
-                                              SizedBox(
-                                                width: 5,
-                                              ),
-                                              Column(
-                                                children: [
-                                                  Icon(
-                                                    Icons.thumb_down,
-                                                    color: googleButtonText,
-                                                    size: 15,
-                                                  ),
-                                                  SizedBox(
-                                                    height: 2,
-                                                  ),
-                                                  Text(
-                                                    '${newWordList[index].incorrect}',
-                                                    style: TextStyle(
-                                                        color: googleButtonText,
-                                                        letterSpacing: 1,
-                                                        fontSize: 14),
-                                                  )
-                                                ],
-                                              ),
-                                            ],
-                                          )
-                                        ],
-                                      ),
-                                      SizedBox(
-                                        height: 15,
-                                      ),
-                                      Text(
-                                        newWordList[index].meaning,
-                                        style: TextStyle(
-                                            color: googleButtonText,
-                                            letterSpacing: 1,
-                                            fontSize: 15),
-                                      ),
-                                      SizedBox(
-                                        height: 25,
-                                      ),
-                                      Row(
-                                        mainAxisAlignment:
-                                            MainAxisAlignment.center,
-                                        children: [
-                                          Text(
-                                            '________________',
-                                            style: TextStyle(
-                                                color: googleButtonTextLight,
-                                                fontSize: 15),
-                                          ),
-                                        ],
-                                      ),
-                                    ],
-                                  ),
-                                )),
-                          ),
+                                    SizedBox(
+                                      height: 15,
+                                    ),
+                                    Text(
+                                      newWordList[index].meaning,
+                                      style: TextStyle(
+                                          color: googleButtonText,
+                                          letterSpacing: 1,
+                                          fontSize: 15),
+                                    ),
+                                    SizedBox(
+                                      height: 25,
+                                    ),
+                                    Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.center,
+                                      children: [
+                                        Text(
+                                          '________________',
+                                          style: TextStyle(
+                                              color: googleButtonTextLight,
+                                              fontSize: 15),
+                                        ),
+                                      ],
+                                    ),
+                                  ],
+                                ),
+                              )),
                         );
                       },
                     ),
@@ -348,8 +300,8 @@ class _AllWordsState extends State<AllWords> {
     print('userID: $_userId');
   }
 
-  fetchAllWords() {
-    dbHelper.getAllWords().then((value) {
+  fetchAllWords(sortOrder) {
+    dbHelper.getAllWords(sortOrder).then((value) {
       setState(() {
         wordList = value;
         listSize = value.length;

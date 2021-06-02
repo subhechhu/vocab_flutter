@@ -65,6 +65,13 @@ class _HomeState extends State<Home> {
                 getOptionCard('All Words', Icons.description),
               ],
             ),
+            getSizedBox(2.0, 0.0),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                getOptionCard('Idoms & Phrasals', Icons.whatshot_rounded),
+              ],
+            ),
             getSizedBox(25.0, 0),
             Align(
               alignment: Alignment.center,
@@ -187,6 +194,9 @@ class _HomeState extends State<Home> {
             _totalWords = _totalWords - 1;
           });
         }
+        break;
+      case 'Idoms & Phrasals':
+        Navigator.pushNamed(context, '/idoms');
         break;
     }
   }
