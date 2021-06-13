@@ -381,7 +381,8 @@ class _MyFloatingActionButtonState extends State<MyFloatingActionButton> {
             Expanded(
               child: SizedBox(
                 height: 50,
-                child: Card(
+                child:
+                Card(
                   elevation: 2,
                   color: googleButtonBg,
                   child: InkWell(

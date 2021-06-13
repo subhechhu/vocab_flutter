@@ -88,124 +88,130 @@ class _RecentWordsState extends State<RecentWords> {
           children: [
             listSize > 0
                 ? Expanded(
-                    child: ListView.builder(
-                      itemCount: wordList.length,
-                      itemBuilder: (context, index) {
-                        return Card(
-                          elevation: 0,
-                          color: primaryColor,
-                          child: InkWell(
-                              splashColor: googleButtonBg,
-                              onLongPress: () {
-                                playWord.speak(wordList[index].word);
-                              },
-                              onTap: () async {
-                                dynamic result = await Navigator.pushNamed(
-                                    context, '/add',
-                                    arguments: {
-                                      'action': 'Modify Word',
-                                      'word': wordList[index],
-                                      'userId': _userId,
-                                    });
-                                _shouldRefresh = result['shouldRefresh'];
-                                if (_shouldRefresh) {
-                                  fetchRecent(_defaultRecentSize, orderType);
-                                }
-                              },
-                              child: Padding(
-                                padding: const EdgeInsets.all(20),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.spaceBetween,
-                                      children: [
-                                        Text(
-                                          '${wordList[index].word} (${wordList[index].pronunciation})',
-                                          style: TextStyle(
-                                              color: googleButtonText,
-                                              letterSpacing: 1,
-                                              fontSize: 16,
-                                              fontWeight: FontWeight.bold),
-                                        ),
-                                        Row(
-                                          children: [
-                                            Column(
-                                              children: [
-                                                Icon(
-                                                  Icons.thumb_up,
-                                                  color: googleButtonText,
-                                                  size: 15,
-                                                ),
-                                                SizedBox(
-                                                  height: 2,
-                                                ),
-                                                Text(
-                                                  '${wordList[index].correct}',
-                                                  style: TextStyle(
-                                                      color: googleButtonText,
-                                                      letterSpacing: 1,
-                                                      fontSize: 14),
-                                                )
-                                              ],
-                                            ),
-                                            SizedBox(
-                                              width: 5,
-                                            ),
-                                            Column(
-                                              children: [
-                                                Icon(
-                                                  Icons.thumb_down,
-                                                  color: googleButtonText,
-                                                  size: 15,
-                                                ),
-                                                SizedBox(
-                                                  height: 2,
-                                                ),
-                                                Text(
-                                                  '${wordList[index].incorrect}',
-                                                  style: TextStyle(
-                                                      color: googleButtonText,
-                                                      letterSpacing: 1,
-                                                      fontSize: 14),
-                                                )
-                                              ],
-                                            ),
-                                          ],
-                                        )
-                                      ],
-                                    ),
-                                    SizedBox(
-                                      height: 15,
-                                    ),
-                                    Text(
-                                      wordList[index].meaning,
-                                      style: TextStyle(
-                                          color: googleButtonText,
-                                          letterSpacing: 1,
-                                          fontSize: 15),
-                                    ),
-                                    SizedBox(
-                                      height: 25,
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        Text(
-                                          '________________',
-                                          style: TextStyle(
-                                              color: googleButtonTextLight,
-                                              fontSize: 15),
-                                        ),
-                                      ],
-                                    ),
-                                  ],
-                                ),
-                              )),
-                        );
-                      },
+                    child: RawScrollbar(
+                      thumbColor: error,
+                      radius: Radius.circular(20),
+                      thickness: 5,
+                      child: ListView.builder(
+                        itemCount: wordList.length,
+                        itemBuilder: (context, index) {
+                          return Card(
+                            elevation: 0,
+                            color: primaryColor,
+                            child: InkWell(
+                                splashColor: googleButtonBg,
+                                onLongPress: () {
+                                  playWord.speak(wordList[index].word);
+                                },
+                                onTap: () async {
+                                  dynamic result = await Navigator.pushNamed(
+                                      context, '/add',
+                                      arguments: {
+                                        'action': 'Modify Word',
+                                        'word': wordList[index],
+                                        'userId': _userId,
+                                      });
+                                  _shouldRefresh = result['shouldRefresh'];
+                                  if (_shouldRefresh) {
+                                    fetchRecent(_defaultRecentSize, orderType);
+                                  }
+                                },
+                                child: Padding(
+                                  padding: const EdgeInsets.all(20),
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.spaceBetween,
+                                        children: [
+                                          Text(
+                                            '${wordList[index].word} (${wordList[index].pronunciation})',
+                                            style: TextStyle(
+                                                color: googleButtonText,
+                                                letterSpacing: 1,
+                                                fontSize: 16,
+                                                fontWeight: FontWeight.bold),
+                                          ),
+                                          Row(
+                                            children: [
+                                              Column(
+                                                children: [
+                                                  Icon(
+                                                    Icons.thumb_up,
+                                                    color: googleButtonText,
+                                                    size: 15,
+                                                  ),
+                                                  SizedBox(
+                                                    height: 2,
+                                                  ),
+                                                  Text(
+                                                    '${wordList[index].correct}',
+                                                    style: TextStyle(
+                                                        color: googleButtonText,
+                                                        letterSpacing: 1,
+                                                        fontSize: 14),
+                                                  )
+                                                ],
+                                              ),
+                                              SizedBox(
+                                                width: 5,
+                                              ),
+                                              Column(
+                                                children: [
+                                                  Icon(
+                                                    Icons.thumb_down,
+                                                    color: googleButtonText,
+                                                    size: 15,
+                                                  ),
+                                                  SizedBox(
+                                                    height: 2,
+                                                  ),
+                                                  Text(
+                                                    '${wordList[index].incorrect}',
+                                                    style: TextStyle(
+                                                        color: googleButtonText,
+                                                        letterSpacing: 1,
+                                                        fontSize: 14),
+                                                  )
+                                                ],
+                                              ),
+                                            ],
+                                          )
+                                        ],
+                                      ),
+                                      SizedBox(
+                                        height: 15,
+                                      ),
+                                      Text(
+                                        wordList[index].meaning,
+                                        style: TextStyle(
+                                            color: googleButtonText,
+                                            letterSpacing: 1,
+                                            fontSize: 15),
+                                      ),
+                                      SizedBox(
+                                        height: 25,
+                                      ),
+                                      Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.center,
+                                        children: [
+                                          Text(
+                                            '________________',
+                                            style: TextStyle(
+                                                color: googleButtonTextLight,
+                                                fontSize: 15),
+                                          ),
+                                        ],
+                                      ),
+                                    ],
+                                  ),
+                                )),
+                          );
+                        },
+                      ),
                     ),
                   )
                 : Center(

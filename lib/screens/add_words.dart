@@ -12,6 +12,7 @@ import 'package:vocab/services/words.dart';
 import 'package:fluttertoast/fluttertoast.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
+
 class AddWord extends StatefulWidget {
   @override
   _AddWordState createState() => _AddWordState();
@@ -469,11 +470,12 @@ class _AddWordState extends State<AddWord> {
 
   getDetailsForWord() async {
     String url =
-        'https://owlbot.info/api/v4/dictionary/${_controllerWord.value.text.trim().toLowerCase()}';
+        'https://owlbot.info/api/v4/dictionary/${_controllerWord.value.text
+        .trim().toLowerCase()}';
 
     Response response = await get(Uri.parse(url), headers: {
       HttpHeaders.authorizationHeader:
-          'token 22f202b5361e234f44893150c0a10f102b180f7b'
+      'token 22f202b5361e234f44893150c0a10f102b180f7b'
     });
     pr.hide();
 

@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:progress_dialog/progress_dialog.dart';
 import 'package:vocab/services/db_helper.dart';
 import 'package:vocab/services/words.dart';
 import 'package:vocab/util/colors.dart';
@@ -17,7 +16,6 @@ class _RandomWordState extends State<RandomWord> {
   Future<SharedPreferences> _prefs = SharedPreferences.getInstance();
   PlayWord playWord = PlayWord();
   DbHelper dbHelper = DbHelper();
-  ProgressDialog pr;
   String _word = '';
   String _meaning = '';
   int _correct = 0;
